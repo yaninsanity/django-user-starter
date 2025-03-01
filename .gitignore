@@ -1,3 +1,5 @@
 *myproject*
 *venv*
 *requirement*
+*.egg-info
+dist
