@@ -1,6 +1,6 @@
 name: Build, Tag, and Publish to PyPI
 
-# Trigger this workflow on any push to the main branch
+# Trigger the workflow on any push to the main branch.
 on:
   push:
     branches:
@@ -10,30 +10,28 @@ jobs:
   build-tag-publish:
     runs-on: ubuntu-latest
     steps:
-      # Step 1: Check out the repository with full history (required for tag operations)
+      # Step 1: Checkout the repository with full history (needed for tag operations).
       - name: Checkout Repository
         uses: actions/checkout@v2
         with:
-          fetch-depth: 0           # Fetch all commit history and tags
-          persist-credentials: false  # Disable built-in credentials so we can use our PAT later
+          fetch-depth: 0  # Retrieve complete history including tags
 
-      # Step 2: Set up Python environment
+      # Step 2: Set up Python environment.
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
           python-version: "3.9"
 
-      # Step 3: Configure Git for committing and pushing tags
+      # Step 3: Configure Git with a generic username and email.
       - name: Configure Git
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      # Step 4: Check if the current commit already has a tag
+      # Step 4: Check if the current commit already has a tag.
       - name: Check if commit is already tagged
         id: check_tag
         run: |
-          # If the current commit has an exact matching tag, output is_tagged = true
           if git describe --exact-match --tags $GITHUB_SHA 2>/dev/null; then
             echo "Commit is already tagged."
             echo "::set-output name=is_tagged::true"
@@ -42,45 +40,42 @@ jobs:
             echo "::set-output name=is_tagged::false"
           fi
 
-      # Step 5: Bump the version and push a new tag if the commit is not tagged
+      # Step 5: If not tagged, bump the version (increment patch number) and push a new tag.
       - name: Bump version and push tag
         if: steps.check_tag.outputs.is_tagged == 'false'
         id: bump_version
         run: |
-          # Retrieve the latest tag; if none exists, default to v0.0.0
+          # Retrieve the latest tag; if none exists, default to v0.0.0.
           LATEST_TAG=$(git describe --tags --abbrev=0 || echo "v0.0.0")
           echo "Latest tag: $LATEST_TAG"
-          # Remove the 'v' prefix to parse the version number
+          # Remove the 'v' prefix to parse the version number.
           VERSION=${LATEST_TAG#v}
-          # Split the version string into major, minor, and patch
+          # Split version into major, minor, and patch.
           IFS='.' read -r major minor patch <<< "$VERSION"
-          # Increment the patch version by 1
+          # Increment the patch version.
           new_patch=$((patch + 1))
           NEW_TAG="v${major}.${minor}.${new_patch}"
           echo "New tag: $NEW_TAG"
-          # Update the remote URL to include our Personal Access Token (PAT)
-          git remote set-url origin https://${{ secrets.PAT_TOKEN }}@github.com/${{ github.repository }}.git
-          # Create and push the new tag
+          # Create and push the new tag using the default remote configured with GITHUB_TOKEN.
           git tag $NEW_TAG
           git push origin $NEW_TAG
-          # Set output variable for later use (if needed)
           echo "::set-output name=new_tag::$NEW_TAG"
 
-      # Step 6: Fetch tags so the new tag is available locally for building
+      # Step 6: Fetch tags to ensure the new tag is available locally.
       - name: Fetch Tags
         run: git fetch --tags
 
-      # Step 7: Install build tools (build and twine)
+      # Step 7: Install build tools (build and twine).
       - name: Install Build Tools
         run: |
           pip install --upgrade pip
           pip install build twine
 
-      # Step 8: Build the package using the pyproject.toml configuration
+      # Step 8: Build the package using your pyproject.toml configuration.
       - name: Build Package
         run: python -m build
 
-      # Step 9: Publish the built package to PyPI using Twine
+      # Step 9: Publish the built package to PyPI using Twine.
       - name: Publish to PyPI
         env:
           TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
