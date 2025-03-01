@@ -1,21 +1,59 @@
-name: Publish to PyPI
+name: Build, Tag and Publish to PyPI
 
 on:
   push:
-    tags:
-      - "*"
+    branches:
+      - main
 
 jobs:
-  build-and-publish:
+  build-tag-publish:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out code
+      - name: Checkout repository
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0          
+          persist-credentials: true  
 
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
           python-version: "3.9"
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Check if commit is already tagged
+        id: check_tag
+        run: |
+          if git describe --exact-match --tags $GITHUB_SHA 2>/dev/null; then
+            echo "commit is tagged"
+            echo "::set-output name=is_tagged::true"
+          else
+            echo "commit is not tagged"
+            echo "::set-output name=is_tagged::false"
+          fi
+
+      - name: Bump version and push tag
+        if: steps.check_tag.outputs.is_tagged == 'false'
+        id: bump_version
+        run: |
+          LATEST_TAG=$(git describe --tags --abbrev=0 || echo "v0.0.0")
+          echo "Latest tag: $LATEST_TAG"
+          VERSION=${LATEST_TAG#v}
+          IFS='.' read -r major minor patch <<< "$VERSION"
+          # bump patch 
+          new_patch=$((patch + 1))
+          NEW_TAG="v${major}.${minor}.${new_patch}"
+          echo "New tag: $NEW_TAG"
+          git tag $NEW_TAG
+          git push origin $NEW_TAG
+          echo "::set-output name=new_tag::$NEW_TAG"
+
+      - name: Fetch tags
+        run: git fetch --tags
 
       - name: Install build tools
         run: pip install --upgrade pip build twine
@@ -24,7 +62,6 @@ jobs:
         run: python -m build
 
       - name: Publish to PyPI
-        if: startsWith(github.ref, 'refs/tags/')
         env:
           TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
           TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
