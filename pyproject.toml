@@ -1,0 +1,43 @@
+[build-system]
+requires = [
+  "setuptools>=42",
+  "wheel",
+  "setuptools_scm[toml]>=6.0.0"
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "django-user-starter"
+description = "A Django starter script with both Chinese and English versions, auto versioning via setuptools_scm."
+readme = "README.md"
+license = { file = "LICENSE" }
+keywords = ["django", "starter", "shell"]
+authors = [
+  { name = "YourName", email = "your.email@example.com" }
+]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Framework :: Django",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent"
+]
+dependencies = [
+  "Django>=3.2",
+  "django-avatar",
+  "pillow"
+]
+requires-python = ">=3.7"
+
+dynamic = ["version"]
+
+[project.scripts]
+django-starter-zh = "django_user_starter.cli:main_zh"
+django-starter-en = "django_user_starter.cli:main_en"
+
+[tool.setuptools_scm]
+write_to = "django_user_starter/_version.py"
+version_scheme = "post-release"
+local_scheme = "no-local-version"
+
+[tool.setuptools]
+
