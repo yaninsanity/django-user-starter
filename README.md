@@ -84,7 +84,8 @@ Optionally create a superuser (default: y).
 Start the Development Server:
 
 ```bash
-python manage.py runserver
+source venv/bin/activate
+python3 <myproject>/manage.py runserver
 ```
 
 ## Access the Project:
