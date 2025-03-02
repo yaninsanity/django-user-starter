@@ -1,83 +1,42 @@
-name: Build, Tag, and Publish to PyPI
-
-# Trigger the workflow on any push to the main branch.
+name: Publish Package to PyPI
 on:
   push:
-    branches:
-      - main
+    branches: [main]
+
+permissions:
+  contents: write  # allow creating/pushing tags (limited to repo contents)
 
 jobs:
-  build-tag-publish:
+  release:
     runs-on: ubuntu-latest
+
     steps:
-      # Step 1: Checkout the repository with full history (needed for tag operations).
-      - name: Checkout Repository
-        uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Retrieve complete history including tags
+          fetch-depth: 0  # fetch full git history to include tags&#8203;:contentReference[oaicite:7]{index=7}
 
-      # Step 2: Set up Python environment.
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
-          python-version: "3.9"
+          python-version: "3.x"
 
-      # Step 3: Configure Git with a generic username and email.
-      - name: Configure Git
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-      # Step 4: Check if the current commit already has a tag.
-      - name: Check if commit is already tagged
-        id: check_tag
-        run: |
-          if git describe --exact-match --tags $GITHUB_SHA 2>/dev/null; then
-            echo "Commit is already tagged."
-            echo "::set-output name=is_tagged::true"
-          else
-            echo "Commit is not tagged."
-            echo "::set-output name=is_tagged::false"
-          fi
-
-      # Step 5: If not tagged, bump the version (increment patch number) and push a new tag.
+      # Bump version tag (using setuptools_scm for versioning)
       - name: Bump version and push tag
-        if: steps.check_tag.outputs.is_tagged == 'false'
-        id: bump_version
-        run: |
-          # Retrieve the latest tag; if none exists, default to v0.0.0.
-          LATEST_TAG=$(git describe --tags --abbrev=0 || echo "v0.0.0")
-          echo "Latest tag: $LATEST_TAG"
-          # Remove the 'v' prefix to parse the version number.
-          VERSION=${LATEST_TAG#v}
-          # Split version into major, minor, and patch.
-          IFS='.' read -r major minor patch <<< "$VERSION"
-          # Increment the patch version.
-          new_patch=$((patch + 1))
-          NEW_TAG="v${major}.${minor}.${new_patch}"
-          echo "New tag: $NEW_TAG"
-          # Create and push the new tag using the default remote configured with GITHUB_TOKEN.
-          git tag $NEW_TAG
-          git push origin $NEW_TAG
-          echo "::set-output name=new_tag::$NEW_TAG"
-
-      # Step 6: Fetch tags to ensure the new tag is available locally.
-      - name: Fetch Tags
-        run: git fetch --tags
-
-      # Step 7: Install build tools (build and twine).
-      - name: Install Build Tools
-        run: |
-          pip install --upgrade pip
-          pip install build twine
-
-      # Step 8: Build the package using your pyproject.toml configuration.
-      - name: Build Package
-        run: python -m build
-
-      # Step 9: Publish the built package to PyPI using Twine.
-      - name: Publish to PyPI
+        uses: anothrNick/github-tag-action@v1
         env:
-          TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
-          TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
-        run: twine upload dist/*
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEFAULT_BUMP: patch        # default to patch version bump
+          WITH_V: "true"            # prefix tag with "v" (e.g., v1.0.1)
+          GIT_API_TAGGING: "false"  # use git CLI instead of API for tagging (ensures local tag presence)
+
+      - name: Build distribution
+        run: |
+          pip install --upgrade build setuptools_scm
+          python -m build  # creates dist/ with wheel and sdist
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
+          # The PyPI API token (add this in your repo settings -> Secrets)
