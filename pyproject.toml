@@ -7,7 +7,6 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [project]
-author = "@yaninsanity"
 name = "django_user_starter"
 description = "A Django starter script with both Chinese and English versions, auto versioning via setuptools_scm."
 readme = "README.md"
