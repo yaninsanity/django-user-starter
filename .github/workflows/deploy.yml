@@ -4,51 +4,55 @@ on:
   push:
     branches:
       - main
+    tags:
+      - 'v*.*.*'
 
 permissions:
-  contents: write  # Required for pushing tags
-  id-token: write  # Mandatory for PyPI Trusted Publishing
+  contents: write
+  id-token: write
 
 jobs:
   # 🏗 Step 1: Build the package and store it as an artifact
   build:
     name: Build distribution 📦
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
+      - name: Checkout Code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0  # Ensure full Git history with tags
 
-      - name: Set up Python
+      - name: Set up Python Environment
         uses: actions/setup-python@v4
         with:
           python-version: "3.x"
 
-      - name: Install dependencies
+      - name: Install Build Dependencies
         run: pip install --upgrade build setuptools_scm
 
-      - name: Build the package
-        run: python -m build  # Generates dist/ folder
+      - name: Generate Version from Git Tags
+        run: |
+          VERSION=$(python -c "import setuptools_scm; print(setuptools_scm.get_version())")
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+          echo "Generated version: ${VERSION}"
 
-      - name: Store the distribution packages
+      - name: Build the Package
+        run: python -m build
+
+      - name: Upload Distribution Artifact
         uses: actions/upload-artifact@v4
         with:
           name: python-package-distributions
           path: dist/
 
-  # 🚀 Step 2: Publish to **TestPyPI** for pre-release validation
   publish-to-testpypi:
-    name: Publish to TestPyPI 🧪
+    name: Publish to TestPyPI
     needs: build
     runs-on: ubuntu-latest
-
     permissions:
-      id-token: write  # Required for OpenID Connect authentication
-
+      id-token: write
     steps:
-      - name: Download distribution packages
+      - name: Download Distribution Artifact
         uses: actions/download-artifact@v4
         with:
           name: python-package-distributions
@@ -59,18 +63,15 @@ jobs:
         with:
           repository-url: https://test.pypi.org/legacy/
 
-  # 🎉 Step 3: If the commit is tagged, publish the package to PyPI
   publish-to-pypi:
-    name: Publish to PyPI 📦
-    if: startsWith(github.ref, 'refs/tags/')  # Only publish if commit is tagged
-    needs: build
+    name: Publish to PyPI
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: publish-to-testpypi
     runs-on: ubuntu-latest
-
     permissions:
-      id-token: write  # Required for OpenID Connect authentication
-
+      id-token: write
     steps:
-      - name: Download distribution packages
+      - name: Download Distribution Artifact
         uses: actions/download-artifact@v4
         with:
           name: python-package-distributions
@@ -78,3 +79,5 @@ jobs:
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://pypi.org/legacy/

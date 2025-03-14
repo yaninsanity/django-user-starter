@@ -4,7 +4,7 @@ import subprocess
 
 def main_zh():
     """
-    入口函数：调用 starter-zh.sh
+    call starter-zh.sh
     """
     base_dir = os.path.dirname(__file__)
     script_path = os.path.join(base_dir, 'starter-zh.sh')
@@ -18,7 +18,7 @@ def main_zh():
 
 def main_en():
     """
-    入口函数：调用 starter-en.sh
+    call starter-en.sh
     """
     base_dir = os.path.dirname(__file__)
     script_path = os.path.join(base_dir, 'starter-en.sh')
