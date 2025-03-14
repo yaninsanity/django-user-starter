@@ -7,13 +7,14 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "django-user-starter"
+author = "@yaninsanity"
+name = "django_user_starter"
 description = "A Django starter script with both Chinese and English versions, auto versioning via setuptools_scm."
 readme = "README.md"
 license = { file = "LICENSE" }
 keywords = ["django", "starter", "shell"]
 authors = [
-  { name = "YourName", email = "your.email@example.com" }
+  { name = "yaninsanity", email = "admin@jl-blog.com" }
 ]
 classifiers = [
   "Programming Language :: Python :: 3",
