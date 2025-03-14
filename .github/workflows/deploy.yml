@@ -1,33 +1,39 @@
 name: Publish Python 🐍 Distribution 📦 to PyPI and TestPyPI
 
+# 1) Trigger on pushes to main or dev branches, and on version tag pushes.
+# 2) Also trigger on pull requests targeting main or dev, so we can do snapshot builds.
 on:
   push:
-    # Trigger on any push to main or dev branches, as well as on version tag pushes.
     branches:
       - main
       - dev
     tags:
       - 'v*.*.*'
+  pull_request:
+    branches:
+      - main
+      - dev
 
 permissions:
   contents: write
   id-token: write
 
 jobs:
+  # ─────────────────────────────────────────────────────────────────────────────
   # BUILD JOB: Build the package and generate a version using setuptools_scm.
-  # This job uploads the built distributions as an artifact.
+  # This job uploads the built distributions as an artifact for subsequent jobs.
   build:
     name: Build Distribution Package
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.get_version.outputs.version }}
     steps:
-      - name: Checkout Code
+      - name: Check Out Code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Get full Git history (and tags) for accurate versioning
+          fetch-depth: 0  # Ensure full Git history (and tags) for accurate versioning
 
-      - name: Set up Python Environment
+      - name: Set Up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.x"
@@ -39,19 +45,18 @@ jobs:
       - name: Generate Version from Git Tags
         id: get_version
         run: |
-          # Generate the version automatically using setuptools_scm.
-          # On non-main commits (e.g., dev branch), this will produce a snapshot version
-          # (e.g. 0.1.0.dev123+gabcdef), while on a tagged commit, it will produce a clean version (e.g. 1.0.0).
+          # Let setuptools_scm compute the version.
+          # - On non-tag commits, this will produce a snapshot (e.g. 0.1.0.dev123+gabcdef).
+          # - On a tagged commit, it will produce a clean version (e.g. 1.0.0).
           VERSION=$(python -c "import setuptools_scm; print(setuptools_scm.get_version())")
           echo "Computed version: ${VERSION}"
-          # Save the computed version as a step output and an environment variable.
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
 
       - name: Build the Package
         run: |
           python -m build
-          # The built distributions will be located in the dist/ folder.
+          # The built distributions will be in the dist/ folder.
 
       - name: Upload Distribution Artifact
         uses: actions/upload-artifact@v4
@@ -59,12 +64,18 @@ jobs:
           name: python-package-distributions
           path: dist/
 
-  # PUBLISH SNAPSHOT JOB: Publish snapshot builds to TestPyPI (for dev branch).
+  # ─────────────────────────────────────────────────────────────────────────────
+  # PUBLISH SNAPSHOT JOB: Publish a snapshot build to TestPyPI.
+  # This runs if either:
+  #   - The event is a pull_request to main or dev, or
+  #   - The ref is dev branch (pushes directly to dev).
   publish_snapshot:
     name: Publish Snapshot to TestPyPI
     needs: build
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/dev'
+    if: |
+      github.event_name == 'pull_request' ||
+      github.ref == 'refs/heads/dev'
     permissions:
       id-token: write
     steps:
@@ -79,12 +90,18 @@ jobs:
         with:
           repository-url: https://test.pypi.org/legacy/
 
-  # PUBLISH OFFICIAL JOB: Publish official releases to PyPI.
+  # ─────────────────────────────────────────────────────────────────────────────
+  # PUBLISH OFFICIAL JOB: Publish an official release to PyPI.
+  # This runs if either:
+  #   - A version tag is pushed (e.g. v1.0.0), or
+  #   - The ref is main branch (you can decide if you want that).
   publish_official:
     name: Publish Official Release to PyPI
     needs: build
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/')
+    if: |
+      startsWith(github.ref, 'refs/tags/') ||
+      github.ref == 'refs/heads/main'
     permissions:
       id-token: write
     steps:
@@ -99,14 +116,16 @@ jobs:
         with:
           repository-url: https://pypi.org/legacy/
 
+  # ─────────────────────────────────────────────────────────────────────────────
   # GITHUB RELEASE JOB: Sign the distributions with Sigstore and create a GitHub Release.
+  # Only runs if publish_official was triggered (i.e. tag push or main branch).
   github_release:
     name: Sign Distributions and Create GitHub Release
     needs: publish_official
     runs-on: ubuntu-latest
     permissions:
-      contents: write  # Required for creating GitHub Releases.
-      id-token: write  # Required for Sigstore signing.
+      contents: write  # Required for creating GitHub Releases
+      id-token: write  # Required for Sigstore signing
     steps:
       - name: Download Distribution Artifact
         uses: actions/download-artifact@v4
@@ -125,11 +144,13 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
-          # Create a GitHub Release using the tag name (e.g., v1.0.0).
+          # If the ref is a tag (e.g., v1.0.0), we create a release named after that tag.
+          # If the ref is main, you can adjust the release naming as needed.
           gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --notes "Release $GITHUB_REF_NAME"
 
       - name: Upload Signatures to GitHub Release
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
-          # Upload all files from the dist/ folder (including signatures) to the 
+          # Upload all files from dist/ (including Sigstore signatures) to the GitHub Release.
+          gh release upload "$GITHUB_REF_NAME" dist/** --repo "$GITHUB_REPOSITORY"
