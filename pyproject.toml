@@ -50,3 +50,9 @@ exclude = [
   "build",
   "dist",
 ]
+
+[tool.semantic_release]
+version_source = "tag"
+upload_to_pypi = true
+branch = "main"
+commit_subject = "chore(release): {version}"
