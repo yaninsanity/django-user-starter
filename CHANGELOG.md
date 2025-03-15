@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v0.1.1 (2025-03-15)
+
+### Bug Fixes
+
+- Improve doc with PSR instructions
+  ([`a862b0a`](https://github.com/yaninsanity/django-user-starter/commit/a862b0a5da876eb31900f8b1c4778cf8b6b17d46))
+
+
 ## v0.1.0 (2025-03-15)
 
 ### Bug Fixes
