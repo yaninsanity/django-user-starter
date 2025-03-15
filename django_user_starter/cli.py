@@ -2,30 +2,23 @@ import os
 import sys
 import subprocess
 
-def main_zh():
+def run_script(script_name):
     """
-    call starter-zh.sh
+    Helper function to execute a shell script from the package directory.
     """
     base_dir = os.path.dirname(__file__)
-    script_path = os.path.join(base_dir, 'starter-zh.sh')
-
-    if not os.path.exists(script_path):
-        sys.exit("Error: starter-zh.sh not found.")
-
-    os.chmod(script_path, 0o755)
+    script_path = os.path.join(base_dir, script_name)
     
+    if not os.path.exists(script_path):
+        sys.exit(f"Error: {script_name} not found.")
+    
+    os.chmod(script_path, 0o755)
     subprocess.call(['bash', script_path])
+
+def main_zh():
+    """Call starter-zh.sh."""
+    run_script('starter-zh.sh')
 
 def main_en():
-    """
-    call starter-en.sh
-    """
-    base_dir = os.path.dirname(__file__)
-    script_path = os.path.join(base_dir, 'starter-en.sh')
-
-    if not os.path.exists(script_path):
-        sys.exit("Error: starter-en.sh not found.")
-
-    os.chmod(script_path, 0o755)
-    
-    subprocess.call(['bash', script_path])
+    """Call starter-en.sh."""
+    run_script('starter-en.sh')
