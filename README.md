@@ -4,8 +4,13 @@
 [![Forks][forks-shield]][forks-url]
 [![Stargazers][stars-shield]][stars-url]
 [![Issues][issues-shield]][issues-url]
-[![Unlicense License][license-shield]][license-url]
+[![MIT License][license-shield]][license-url]
 [![LinkedIn][linkedin-shield]][linkedin-url]
+
+[![Pypi][pypi-img]][pypi-url]
+[![cicd][cicd-img]][cicd]
+
+
 
 [contributors-shield]: https://img.shields.io/github/contributors/othneildrew/Best-README-Template.svg?style=for-the-badge
 [contributors-url]: https://github.com/yaninsanity/django-user-starter/graphs/contributors
@@ -19,6 +24,14 @@
 [license-url]: https://github.com/yaninsanity/django-user-starter/blob/main/LICENSE
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url]: https://www.linkedin.com/in/zerenyan/
+[pypi-img]: https://badge.fury.io/py/readme-renderer.svg
+[cicd-img]: https://github.com/pypa/readme_renderer/actions/workflows/ci.yml/badge.svg
+[pypi-url]: https://pypi.org/project/django-user-starter
+[cicd]: https://github.com/yaninsanity/django-user-starter/actions/workflows/deploy.yml
+
+
+
+
 
 
 # Project Detail
@@ -47,7 +60,7 @@ For an even quicker start, install the package via pip and use the CLI entry poi
 - **中文 CLI**:  
   `django-starter-zh = "django_user_starter.cli:main_zh"`
 
-To launch the English version, simply run:
+To launch the English version, simply run🚀🚀🚀:
 ```bash
 django-starter-en
 ```
