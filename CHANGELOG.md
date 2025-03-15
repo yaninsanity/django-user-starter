@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v0.1.4 (2025-03-15)
+
+### Bug Fixes
+
+- Remove unuse library
+  ([`05b1a32`](https://github.com/yaninsanity/django-user-starter/commit/05b1a321a23b1063195c53a94ba335febb28229e))
+
+
 ## v0.1.3 (2025-03-15)
 
 ### Bug Fixes
