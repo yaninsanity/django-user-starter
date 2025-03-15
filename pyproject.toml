@@ -24,7 +24,8 @@ classifiers = [
 dependencies = [
   "Django>=3.2",
   "django-avatar",
-  "pillow"
+  "pillow",
+  "django-jazzmin"
 ]
 requires-python = ">=3.7"
 
@@ -39,5 +40,13 @@ write_to = "django_user_starter/_version.py"
 version_scheme = "post-release"
 local_scheme = "no-local-version"
 
+
 [tool.setuptools]
 
+[tool.setuptools.packages.find]
+exclude = [
+  "venv*",
+  "*.egg-info",
+  "build",
+  "dist",
+]

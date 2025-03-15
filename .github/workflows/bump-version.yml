@@ -6,7 +6,7 @@ on:
       bump_type:
         description: 'Version bump type: major, minor, or patch'
         required: true
-        default: 'patch'
+        default: 'major'
 
 jobs:
   bump-version:

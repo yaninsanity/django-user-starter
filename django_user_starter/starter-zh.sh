@@ -1,15 +1,15 @@
 #!/bin/bash
-# setup_django_full.sh
+# starter-zh.sh
 #
 # 这个脚本自动创建一个 Django 项目，包含一个定制的用户系统（不再使用冲突的 avatar 字段）
 # 并集成 django-avatar 用于头像管理。
 #
 # 功能：
 #   - 检查 Python3 是否存在，并创建/激活虚拟环境。
-#   - 创建 requirements.txt（依赖 Django、django-avatar、Pillow）并安装依赖。
+#   - 创建 requirements.txt（依赖 Django、django-avatar、Pillow、django-jazzmin）并安装依赖。
 #   - 交互式地询问 Django 项目名称和用户系统 App 名称。
 #   - 创建 Django 项目和 App。
-#   - 修改 settings.py：添加用户 App 和 'avatar' 到 INSTALLED_APPS，
+#   - 修改 settings.py：添加 'jazzmin'、用户 App 和 'avatar' 到 INSTALLED_APPS，
 #     并配置 MEDIA_URL 和 MEDIA_ROOT。
 #   - 可选：创建自定义用户模型（添加 bio、birth_date、phone、address、role 字段，不再使用 avatar 字段）。
 #   - 配置 admin 以支持自定义用户模型。
@@ -18,8 +18,8 @@
 #   - 运行数据库迁移，并可选创建超级用户。
 #
 # 使用方法：
-#   chmod +x setup_django_full.sh
-#   ./setup_django_full.sh
+#   chmod +x starter-zh.sh
+#   ./starter-zh.sh
 
 set -e
 
@@ -74,6 +74,7 @@ cat <<EOF > "$req_file"
 Django>=3.2
 django-avatar
 pillow
+django-jazzmin
 EOF
 
 echo "升级 pip 并安装依赖..."
@@ -100,8 +101,9 @@ python manage.py startapp "$app_name" || die "App 创建失败."
 # -------------------------
 # Step 5. 修改 settings.py
 settings_file="$project_name/settings.py"
-echo "更新 $settings_file：将 '$app_name' 和 'avatar' 添加到 INSTALLED_APPS..."
-for app in "'$app_name'" "'avatar'"; do
+echo "更新 $settings_file：将 'jazzmin'、'$app_name' 和 'avatar' 添加到 INSTALLED_APPS..."
+# 仅在这里添加 'jazzmin'
+for app in "'jazzmin'" "'$app_name'" "'avatar'"; do
   if ! grep -q "$app" "$settings_file"; then
     sed_append "INSTALLED_APPS = \[" "$settings_file" "    $app,"
     echo "已添加 $app 到 INSTALLED_APPS."
@@ -330,4 +332,5 @@ echo "  - 启动开发服务器: python manage.py runserver"
 echo "  - 管理后台: http://localhost:8000/admin/"
 echo "  - 主页: http://localhost:8000/ （根据你的 URL 配置调整）"
 echo "  - django-avatar 使用 MEDIA_URL 和 MEDIA_ROOT 配置管理用户头像."
+echo "  - 已安装 django-jazzmin，可在 settings.py 中进一步配置 (INSTALLED_APPS 中已包含 'jazzmin')."
 echo "-------------------------------------------------"

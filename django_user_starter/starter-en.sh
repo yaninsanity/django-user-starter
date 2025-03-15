@@ -1,15 +1,15 @@
 #!/bin/bash
-# setup_django_full.sh
+# starter-en.sh
 #
-# This script automatically creates a Django project with a custom user system (no conflicting avatar field)
-# and integrates django-avatar for avatar management.
+# This script automatically creates a Django project with a custom user system (no conflicting avatar field),
+# integrates django-avatar for avatar management, and now also installs & configures jazzmin.
 #
 # Features:
 #   - Checks if Python3 is available and creates/activates a virtual environment.
-#   - Creates a requirements.txt (including Django, django-avatar, Pillow) and installs dependencies.
+#   - Creates a requirements.txt (including Django, django-avatar, Pillow, and django-jazzmin) and installs dependencies.
 #   - Interactively prompts for Django project name and user system App name.
 #   - Creates a Django project and App.
-#   - Modifies settings.py: Adds the user App and 'avatar' to INSTALLED_APPS,
+#   - Modifies settings.py: Adds jazzmin, the user App and 'avatar' to INSTALLED_APPS,
 #     and configures MEDIA_URL and MEDIA_ROOT.
 #   - Optionally creates a custom user model (adding bio, birth_date, phone, address, role fields, removing avatar field).
 #   - Configures admin to support the custom user model.
@@ -18,8 +18,8 @@
 #   - Runs database migrations and optionally creates a superuser.
 #
 # Usage:
-#   chmod +x setup_django_full.sh
-#   ./setup_django_full.sh
+#   chmod +x starter-en.sh
+#   ./starter-en.sh
 
 set -e
 
@@ -65,6 +65,7 @@ if [[ ! -d "$venv_dir" ]]; then
 fi
 
 echo "Activating virtual environment..."
+# shellcheck disable=SC1090
 source "$venv_dir/bin/activate"
 
 # -------------------------
@@ -74,6 +75,7 @@ cat <<EOF > "$req_file"
 Django>=3.2
 django-avatar
 pillow
+django-jazzmin
 EOF
 
 echo "Upgrading pip and installing dependencies..."
@@ -100,8 +102,9 @@ python manage.py startapp "$app_name" || die "App creation failed."
 # -------------------------
 # Step 5. Modify settings.py
 settings_file="$project_name/settings.py"
-echo "Updating $settings_file: Adding '$app_name' and 'avatar' to INSTALLED_APPS..."
-for app in "'$app_name'" "'avatar'"; do
+echo "Updating $settings_file: Adding 'jazzmin', '$app_name' and 'avatar' to INSTALLED_APPS..."
+
+for app in "'jazzmin'" "'$app_name'" "'avatar'"; do
   if ! grep -q "$app" "$settings_file"; then
     sed_append "INSTALLED_APPS = \[" "$settings_file" "    $app,"
     echo "Added $app to INSTALLED_APPS."
@@ -295,13 +298,14 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.views.generic import TemplateView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('avatar/', include('avatar.urls')),
     path('$app_name/', include('$app_name.urls', namespace='$app_name')),
     # Optional: Uncomment the following line to make the homepage point to your custom template
-    # path('', TemplateView.as_view(template_name="home.html"), name='home'),
+    path('', TemplateView.as_view(template_name="home.html"), name='home'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 EOF
 
@@ -330,4 +334,5 @@ echo "  - Start the development server: python manage.py runserver"
 echo "  - Admin panel: http://localhost:8000/admin/"
 echo "  - Homepage: http://localhost:8000/ (adjust according to your URL configuration)"
 echo "  - Use django-avatar to manage user avatars with MEDIA_URL and MEDIA_ROOT settings."
+echo "  - Jazzmin is installed. You can further configure it in settings.py if needed."
 echo "-------------------------------------------------"
