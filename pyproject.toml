@@ -44,3 +44,4 @@ branch = "main"
 force = true
 build_command = "python -m pip install --upgrade setuptools build wheel && python -m build --no-isolation"
 version_file = "django_user_starter/_version.py"
+version_file_regex = '(__version__\\s*=\\s*["\'])([^"\']*)(["\'])'
