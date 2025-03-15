@@ -8,6 +8,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "django_user_starter"
+version = "1.0.0"
 description = "A Django starter script with both Chinese and English versions, auto versioning via setuptools_scm."
 readme = "README.md"
 license = { file = "LICENSE" }
