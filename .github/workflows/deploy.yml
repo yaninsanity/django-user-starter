@@ -50,7 +50,7 @@ jobs:
           python-version: "3.x"
 
       - name: Install Dependencies (Snapshot)
-        run: pip install --upgrade python-semantic-release build setuptools
+        run: pip install --upgrade python-semantic-release build setuptools wheel
 
       # 通过环境变量覆盖，将分支设为 "dev" 并开启 prerelease 模式
       - name: Run Semantic Release (Snapshot)
@@ -107,7 +107,7 @@ jobs:
           python-version: "3.x"
 
       - name: Install Dependencies (Release)
-        run: pip install --upgrade python-semantic-release build setuptools
+        run: pip install --upgrade python-semantic-release build wheel setuptools
 
       # 正式发布：不传 prerelease 参数，使用默认配置（branch = "main"）发布正式版本
       - name: Run Semantic Release (Official)
