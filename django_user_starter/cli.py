@@ -1,7 +1,6 @@
 import os
 import sys
 import subprocess
-from time import sleep
 
 def run_script(script_name):
     """
