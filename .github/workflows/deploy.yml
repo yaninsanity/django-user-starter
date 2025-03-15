@@ -89,6 +89,7 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           repository-url: https://test.pypi.org/legacy/
+          skip-existing: true
 
   # ─────────────────────────────────────────────────────────────────────────────
   # PUBLISH OFFICIAL JOB: Publish an official release to PyPI.
@@ -114,7 +115,8 @@ jobs:
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          repository-url: https://pypi.org/legacy/
+          repository-url: https://upload.pypi.org/legacy/
+          skip-existing: true
 
   # ─────────────────────────────────────────────────────────────────────────────
   # GITHUB RELEASE JOB: Sign the distributions with Sigstore and create a GitHub Release.
