@@ -42,4 +42,4 @@ upload_to_pypi = true
 upload_to_github = true
 branch = "main"
 force = true
-build_command = "python -m pip install --upgrade setuptools build && python -m build --no-isolation"
+build_command = "python -m pip install --upgrade setuptools build wheel && python -m build --no-isolation"
