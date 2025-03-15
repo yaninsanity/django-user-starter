@@ -1,8 +1,5 @@
 name: Publish Python 🐍 Distribution 📦 to PyPI and TestPyPI
 
-# Workflow triggers:
-# - On pushes to main or dev branches (for snapshot builds)
-# - On pull requests targeting main or dev (for snapshot builds)
 on:
   push:
     branches:
@@ -19,16 +16,16 @@ permissions:
 
 jobs:
   # ─────────────────────────────────────────────────────────────
-  # SNAPSHOT JOB: For PRs or pushes to the dev branch, build and publish a snapshot to TestPyPI.
-  snapshot_build:
+  # SNAPSHOT JOB: For PRs and pushes to the dev branch.
+  snapshot:
     if: github.event_name == 'pull_request' || github.ref == 'refs/heads/dev'
     name: Build and Publish Snapshot to TestPyPI
     runs-on: ubuntu-latest
     steps:
-      - name: Check Out Code
+      - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Fetch full history to enable accurate version computation
+          fetch-depth: 0
 
       - name: Set Up Python
         uses: actions/setup-python@v5
@@ -39,10 +36,8 @@ jobs:
         run: |
           pip install --upgrade build setuptools_scm
 
-      - name: Build the Package
-        run: |
-          python -m build
-          # Distributions are built into the 'dist/' folder
+      - name: Build Package
+        run: python -m build
 
       - name: Upload Distribution Artifact
         uses: actions/upload-artifact@v4
@@ -57,17 +52,25 @@ jobs:
           skip-existing: true
 
   # ─────────────────────────────────────────────────────────────
-  # OFFICIAL RELEASE JOB: For pushes to the main branch,
-  # use python-semantic-release to auto-calculate version bump, create a tag, update changelog, and publish to PyPI.
-  semantic_release:
+  # RELEASE JOB: For pushes to main branch.
+  release:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    name: Semantic Release and Publish Official Release
+    name: Semantic Release & Publish Official Release
     runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-release-${{ github.ref_name }}
+      cancel-in-progress: false
     steps:
-      - name: Check Out Code
+      # Checkout the branch with full history.
+      - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Full history and tags are required for semantic-release
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+
+      # Optionally ensure the branch hasn't changed during the run.
+      - name: Reset Branch to Workflow SHA
+        run: git reset --hard ${{ github.sha }}
 
       - name: Set Up Python
         uses: actions/setup-python@v5
@@ -79,21 +82,26 @@ jobs:
           # Install semantic-release and build tools
           pip install --upgrade python-semantic-release build setuptools_scm
 
-      - name: Build the Package
-        run: |
-          python -m build
-          # Build the package to ensure that artifacts exist before publishing
+      - name: Build Package
+        run: python -m build
 
+      # Run semantic-release. This analyzes commit messages, bumps version,
+      # creates a release commit & tag, and uploads the package to PyPI.
       - name: Run Semantic Release
+        id: release
         env:
-          # PYPI_TOKEN is required for uploading to PyPI; set this in your GitHub secrets.
           PYPI_TOKEN: ${{ secrets.PYPI_PASSWORD }}
-          # GITHUB_TOKEN is automatically provided by GitHub Actions.
-          GITHUB_TOKEN: ${{ github.token}}
-        run: |
-          # This command will:
-          # - Analyze commit messages (following Conventional Commits)
-          # - Determine the next version bump (major, minor, or patch)
-          # - Create a release commit and push a Git tag (e.g., v1.0.0)
-          # - Publish the package to PyPI if a new version is detected.
-          semantic-release publish
+          GITHUB_TOKEN: ${{ github.token }}
+        uses: python-semantic-release/python-semantic-release@v9.21.0
+        with:
+          github_token: ${{ github.token }}
+          git_committer_name: "github-actions"
+          git_committer_email: "actions@users.noreply.github.com"
+
+      # Publish GitHub Release assets using semantic-release's publish-action.
+      - name: Publish GitHub Release Assets
+        if: steps.release.outputs.released == 'true'
+        uses: python-semantic-release/publish-action@v9.21.0
+        with:
+          github_token: ${{ github.token }}
+          tag: ${{ steps.release.outputs.tag }}
