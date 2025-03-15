@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v0.1.6 (2025-03-15)
+
+### Bug Fixes
+
+- Reset version init value
+  ([`f36f4cf`](https://github.com/yaninsanity/django-user-starter/commit/f36f4cfb3548a45e5042057e9840a37b2272da44))
+
+
 ## v0.1.5 (2025-03-15)
 
 ### Bug Fixes
