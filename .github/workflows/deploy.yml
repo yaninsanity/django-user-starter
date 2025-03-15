@@ -39,6 +39,9 @@ jobs:
       - name: Build Package
         run: python -m build
 
+      - name: List build artifacts
+        run: ls -l dist/
+      
       - name: Upload Distribution Artifact
         uses: actions/upload-artifact@v4
         with:
