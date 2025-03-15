@@ -136,8 +136,27 @@ These templates are basic and can be customized further as needed.
 ## Media Files
 The script configures MEDIA_URL and MEDIA_ROOT in settings.py to handle media files, which are required by django-avatar for avatar management.
 
+
 ## Contributing
 If you would like to contribute to this project, please fork the repository and submit a pull request. Any contributions, whether bug fixes, feature additions, or documentation improvements, are welcome.
+
+## Test Snapshot
+To have a snapshot version to test, you can deploy to dev branch, and install snapshot version with following:
+
+```bash
+pip install -i https://test.pypi.org/simple/ django-user-starter==0.0.1.post17 --extra-index-url https://pypi.org/simple django-user-starter
+```
+
+<b>Note:</b> Please update the version above in your terminal execution to ensure test with the latest snapshot version.
+
+## Local Build 
+
+```bash
+pip install --upgrade pip
+pip install build
+python3 -m build
+```
+
 
 ## License
 This project is licensed under the MIT License. See the LICENSE file for details.
