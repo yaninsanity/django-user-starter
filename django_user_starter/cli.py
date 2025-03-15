@@ -2,6 +2,7 @@ import os
 import sys
 import subprocess
 
+
 def run_script(script_name):
     """
     Helper function to execute a shell script from the package directory.
@@ -17,8 +18,26 @@ def run_script(script_name):
 
 def main_zh():
     """Call starter-zh.sh."""
+    print_banner()
     run_script('starter-zh.sh')
 
 def main_en():
     """Call starter-en.sh."""
     run_script('starter-en.sh')
+
+def print_banner():
+    print('''
+        _____  _     _             _                        _             
+    / __  \| |   | |           (_)                      (_)  _         
+    | | /   ) |___| |_____ ____  _ ____   ___ _____ ____  _ _| |_ _   _ 
+    | | \__/|_____  (____ |  _ \| |  _ \ /___|____ |  _ \| (_   _) | | |
+    | |____  _____| / ___ | | | | | | | |___ / ___ | | | | | | |_| |_| |
+                                                                (____/
+          
+    ''')
+    sleep(3)
+    print('''
+    Github Repo: https://github.com/yaninsanity/django-user-starter
+          '''   
+    )
+    sleep(2)
