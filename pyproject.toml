@@ -54,4 +54,4 @@ upload_to_pypi = true
 upload_to_github = true
 branch = "main"
 force = true
-build_command = "python -m build"
+build_command = "python -m pip install build && python -m build"
