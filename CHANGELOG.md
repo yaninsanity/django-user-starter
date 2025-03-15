@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v0.1.2 (2025-03-15)
+
+### Bug Fixes
+
+- Remove duplicated scm requirement and improve cicd with ls dist
+  ([`509af88`](https://github.com/yaninsanity/django-user-starter/commit/509af888323f71af09175208cc7335b720588143))
+
+
 ## v0.1.1 (2025-03-15)
 
 ### Bug Fixes
