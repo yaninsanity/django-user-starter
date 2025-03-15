@@ -29,16 +29,12 @@ dependencies = [
 ]
 requires-python = ">=3.7"
 
-dynamic = ["version"]
+
 
 [project.scripts]
 django-starter-zh = "django_user_starter.cli:main_zh"
 django-starter-en = "django_user_starter.cli:main_en"
 
-[tool.setuptools_scm]
-write_to = "django_user_starter/_version.py"
-version_scheme = "post-release"
-local_scheme = "no-local-version"
 
 
 [tool.setuptools]
