@@ -1,5 +1,4 @@
-Django==5.1.7
-django-avatar==8.0.1
-django-jazzmin==3.0.1
-python-semantic-release==9.21.0
+Django>=3.2
+django-avatar
 pillow
+django-jazzmin
