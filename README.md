@@ -25,31 +25,40 @@
 This repository contains two shell scripts (`starter-en.sh` && `starter-zh.sh`) that automates the setup of a Django project with a custom user system and integrates django-avatar for avatar management. The script is designed to simplify the process of creating a Django project with common configurations, including user authentication, avatar management, and basic templates.
 
 # Features
-- Python3 Check: Ensures Python3 is installed before proceeding.
+- **Python3 Check**: Ensures Python3 is installed before proceeding.
+- **Virtual Environment**: Creates and activates a virtual environment.
+- **Dependencies Installation**: Installs Django, django-avatar, Pillow, and now also django-jazzmin via requirements.txt.
+- **Interactive Setup**: Prompts for project and app names.
+- **Custom User Model**: Optionally creates a custom user model with additional fields (bio, birth_date, phone, address, role). The avatar field is intentionally omitted to avoid conflicts with django-avatar.
+- **Admin Configuration**: Configures the Django admin to support the custom user model.
+- **Basic Views and Templates**: Generates login, logout, register, and homepage views with corresponding templates.
+- **URL Configuration**: Sets up URL routing for the admin, avatar, and user app.
+- **Database Migrations**: Runs initial database migrations.
+- **Superuser Creation**: Optionally creates a superuser for the Django admin.
 
-- Virtual Environment: Creates and activates a virtual environment.
 
-- Dependencies Installation: Installs Django, django-avatar, and Pillow via requirements.txt.
+# Distribution & CI/CD
+Our CI/CD pipeline publishes snapshot releases to [TestPyPI](https://test.pypi.org/project/django-user-starter/) and official releases to [PyPI](https://pypi.org/project/django-user-starter/). This means you can always grab the latest snapshot for testing or the stable release for production use!
 
-- Interactive Setup: Prompts for project and app names.
+# CLI Quick Start
+For an even quicker start, install the package via pip and use the CLI entry points:
+- **English CLI**:  
+  `django-starter-en = "django_user_starter.cli:main_en"`
+- **中文 CLI**:  
+  `django-starter-zh = "django_user_starter.cli:main_zh"`
 
-- Custom User Model: Optionally creates a custom user model with additional fields (bio, birth_date, phone, address, role).
-
-- Admin Configuration: Configures the Django admin to support the custom user model.
-
-- Basic Views and Templates: Generates login, logout, register, and homepage views with corresponding templates.
-
-- URL Configuration: Sets up URL routing for the admin, avatar, and user app.
-
-- Database Migrations: Runs initial database migrations.
-
-- Superuser Creation: Optionally creates a superuser for the Django admin.
-
-- Prerequisites
+To launch the English version, simply run:
+```bash
+django-starter-en
+```
+中文版 快速启动🚀🚀🚀 
+```bash
+django-starter-zh
+```
+# Prerequisites
 Python3: Ensure Python3 is installed on your system.
 
-- Bash: The script is written for Unix-like systems (Linux, macOS).
-
+Bash: The scripts are designed for Unix-like systems (Linux, macOS).
 
 # Getting Started
 Clone the Repository:
