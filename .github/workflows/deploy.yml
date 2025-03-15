@@ -61,14 +61,12 @@ jobs:
       group: ${{ github.workflow }}-release-${{ github.ref_name }}
       cancel-in-progress: false
     steps:
-      # Checkout the branch with full history.
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
           ref: ${{ github.ref_name }}
           fetch-depth: 0
 
-      # Optionally ensure the branch hasn't changed during the run.
       - name: Reset Branch to Workflow SHA
         run: git reset --hard ${{ github.sha }}
 
@@ -79,14 +77,11 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          # Install semantic-release and build tools
           pip install --upgrade python-semantic-release build setuptools_scm
 
       - name: Build Package
         run: python -m build
 
-      # Run semantic-release. This analyzes commit messages, bumps version,
-      # creates a release commit & tag, and uploads the package to PyPI.
       - name: Run Semantic Release
         id: release
         env:
@@ -98,7 +93,6 @@ jobs:
           git_committer_name: "github-actions"
           git_committer_email: "actions@users.noreply.github.com"
 
-      # Publish GitHub Release assets using semantic-release's publish-action.
       - name: Publish GitHub Release Assets
         if: steps.release.outputs.released == 'true'
         uses: python-semantic-release/publish-action@v9.21.0
