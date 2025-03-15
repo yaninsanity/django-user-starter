@@ -20,7 +20,7 @@ env:
 jobs:
   # SNAPSHOT JOB: 用于 PR 和 dev 分支，生成预发布快照上传 TestPyPI
   snapshot:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/dev' || github.event_name == 'pull_request'
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/dev') || github.event_name == 'pull_request'
     name: Snapshot Release (TestPyPI)
     runs-on: ubuntu-latest
     steps:
@@ -30,6 +30,20 @@ jobs:
           ref: ${{ github.ref }}
           fetch-depth: 0
 
+      - name: Ensure HEAD is on branch (Snapshot)
+        run: |
+          if [[ "${GITHUB_REF}" =~ ^refs/pull/ ]]; then
+            echo "PR detected, switching to base branch: ${GITHUB_BASE_REF}"
+            git checkout "${GITHUB_BASE_REF}"
+          else
+            echo "Switching to branch: ${GITHUB_REF#refs/heads/}"
+            git checkout "${GITHUB_REF#refs/heads/}"
+          fi
+          git status
+        env:
+          GITHUB_REF: ${{ github.ref }}
+          GITHUB_BASE_REF: ${{ github.base_ref }}
+
       - name: Set Up Python (Snapshot)
         uses: actions/setup-python@v5
         with:
@@ -38,14 +52,13 @@ jobs:
       - name: Install Dependencies (Snapshot)
         run: pip install --upgrade python-semantic-release build
 
-      # 为了在 dev/PR 上生成预发布版本，
-      # 我们利用环境变量覆盖配置中 branch 设置为 "dev"
+      # 通过环境变量覆盖，将分支设为 "dev" 并开启 prerelease 模式
       - name: Run Semantic Release (Snapshot)
         id: snapshot
         env:
           PYPI_TOKEN: ${{ secrets.PYPI_PASSWORD }}
           GITHUB_TOKEN: ${{ github.token }}
-          SEMANTIC_RELEASE_BRANCH: "dev"   # 覆盖配置，生成预发布版
+          SEMANTIC_RELEASE_BRANCH: "dev"   # 指定预发布的分支
         uses: python-semantic-release/python-semantic-release@v9.21.0
         with:
           github_token: ${{ github.token }}
@@ -62,7 +75,7 @@ jobs:
           repository-url: https://test.pypi.org/legacy/
           skip-existing: true
 
-  # RELEASE JOB: 用于 main 分支，生成正式发布版本上传 PyPI 与 GitHub Release
+  # RELEASE JOB: 用于 main 分支，生成正式发布版本上传到 PyPI 与 GitHub Release
   release:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     name: Official Release
@@ -82,8 +95,11 @@ jobs:
 
       - name: Ensure HEAD is on branch (Release)
         run: |
-          git checkout ${{ github.ref }}
+          echo "Switching to branch: ${GITHUB_REF#refs/heads/}"
+          git checkout "${GITHUB_REF#refs/heads/}"
           git status
+        env:
+          GITHUB_REF: ${{ github.ref }}
 
       - name: Set Up Python (Release)
         uses: actions/setup-python@v5
@@ -93,7 +109,7 @@ jobs:
       - name: Install Dependencies (Release)
         run: pip install --upgrade python-semantic-release build
 
-      # 正式发布时使用默认配置（branch = "main"）且不传 prerelease参数
+      # 正式发布：不传 prerelease 参数，使用默认配置（branch = "main"）发布正式版本
       - name: Run Semantic Release (Official)
         id: release
         env:
