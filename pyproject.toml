@@ -1,7 +1,7 @@
 [build-system]
 requires = [
   "setuptools>=42",
-  "wheel",
+  "wheel"
 ]
 build-backend = "setuptools.build_meta"
 
@@ -29,23 +29,11 @@ dependencies = [
 ]
 requires-python = ">=3.7"
 
-
-
 [project.scripts]
 django-starter-zh = "django_user_starter.cli:main_zh"
 django-starter-en = "django_user_starter.cli:main_en"
 
-
-
 [tool.setuptools]
-
-[tool.setuptools.packages.find]
-exclude = [
-  "venv*",
-  "*.egg-info",
-  "build",
-  "dist",
-]
 
 [tool.semantic_release]
 version_source = "tag"
@@ -54,4 +42,4 @@ upload_to_pypi = true
 upload_to_github = true
 branch = "main"
 force = true
-build_command = "python -m build"
+build_command = "python -m pip install build && python -m build --no-isolation"

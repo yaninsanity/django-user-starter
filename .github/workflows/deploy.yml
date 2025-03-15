@@ -9,23 +9,40 @@ on:
     branches:
       - main
       - dev
-
+  workflow_dispatch:
 permissions:
   contents: write
   id-token: write
 
+env:
+  PYPI_TOKEN: ${{ secrets.PYPI_PASSWORD }}
+
 jobs:
-  # SNAPSHOT JOB: For PRs and pushes to the dev branch.
+  # SNAPSHOT JOB: 用于 PR 和 dev 分支，生成预发布快照上传 TestPyPI
   snapshot:
-    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/dev'
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/dev') || github.event_name == 'pull_request'
     name: Snapshot Release (TestPyPI)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository (Snapshot)
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.ref }}   # 确保不处于 detached HEAD
+          ref: ${{ github.ref }}
           fetch-depth: 0
+
+      - name: Ensure HEAD is on branch (Snapshot)
+        run: |
+          if [[ "${GITHUB_REF}" =~ ^refs/pull/ ]]; then
+            echo "PR detected, switching to base branch: ${GITHUB_BASE_REF}"
+            git checkout "${GITHUB_BASE_REF}"
+          else
+            echo "Switching to branch: ${GITHUB_REF#refs/heads/}"
+            git checkout "${GITHUB_REF#refs/heads/}"
+          fi
+          git status
+        env:
+          GITHUB_REF: ${{ github.ref }}
+          GITHUB_BASE_REF: ${{ github.base_ref }}
 
       - name: Set Up Python (Snapshot)
         uses: actions/setup-python@v5
@@ -33,23 +50,22 @@ jobs:
           python-version: "3.x"
 
       - name: Install Dependencies (Snapshot)
-        run: |
-          pip install --upgrade python-semantic-release build
+        run: pip install --upgrade python-semantic-release build
 
-      # 预发布模式：生成 snapshot 版本（例如 1.0.1-dev.1）
+      # 通过环境变量覆盖，将分支设为 "dev" 并开启 prerelease 模式
       - name: Run Semantic Release (Snapshot)
         id: snapshot
         env:
           PYPI_TOKEN: ${{ secrets.PYPI_PASSWORD }}
           GITHUB_TOKEN: ${{ github.token }}
+          SEMANTIC_RELEASE_BRANCH: "dev"   # 指定预发布的分支
         uses: python-semantic-release/python-semantic-release@v9.21.0
         with:
           github_token: ${{ github.token }}
           git_committer_name: "github-actions"
           git_committer_email: "actions@users.noreply.github.com"
-          prerelease: "true"  # 开启预发布模式
-          
-      # 构建新版包由 semantic-release 自动触发（如果配置了 build_command）
+          prerelease: "true"
+
       - name: List build artifacts (Snapshot)
         run: ls -l dist/
       
@@ -59,28 +75,31 @@ jobs:
           repository-url: https://test.pypi.org/legacy/
           skip-existing: true
 
-  # RELEASE JOB: For pushes to main branch.
+  # RELEASE JOB: 用于 main 分支，生成正式发布版本上传到 PyPI 与 GitHub Release
   release:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     name: Official Release
     runs-on: ubuntu-latest
     concurrency:
-      group: ${{ github.workflow }}-release-${{ github.ref_name }}
+      group: ${{ github.workflow }}-release-${{ github.ref }}
       cancel-in-progress: false
     steps:
       - name: Checkout Repository (Release)
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.ref }}  # 确保 HEAD 在 main 分支上
+          ref: ${{ github.ref }}
           fetch-depth: 0
 
-      - name: Reset Branch to Workflow SHA
+      - name: Reset Branch to Workflow SHA (Release)
         run: git reset --hard ${{ github.sha }}
 
       - name: Ensure HEAD is on branch (Release)
         run: |
-          git checkout ${{ github.ref }}
+          echo "Switching to branch: ${GITHUB_REF#refs/heads/}"
+          git checkout "${GITHUB_REF#refs/heads/}"
           git status
+        env:
+          GITHUB_REF: ${{ github.ref }}
 
       - name: Set Up Python (Release)
         uses: actions/setup-python@v5
@@ -88,9 +107,9 @@ jobs:
           python-version: "3.x"
 
       - name: Install Dependencies (Release)
-        run: |
-          pip install --upgrade python-semantic-release build
+        run: pip install --upgrade python-semantic-release build
 
+      # 正式发布：不传 prerelease 参数，使用默认配置（branch = "main"）发布正式版本
       - name: Run Semantic Release (Official)
         id: release
         env:
