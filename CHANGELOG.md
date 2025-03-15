@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v0.1.5 (2025-03-15)
+
+### Bug Fixes
+
+- Dynamic versioning
+  ([`16d9463`](https://github.com/yaninsanity/django-user-starter/commit/16d94635bfcdcb19f6db6a5712dc06a4d09547c8))
+
+
 ## v0.1.4 (2025-03-15)
 
 ### Bug Fixes
