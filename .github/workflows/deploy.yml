@@ -15,77 +15,83 @@ permissions:
   id-token: write
 
 jobs:
-  # ─────────────────────────────────────────────────────────────
   # SNAPSHOT JOB: For PRs and pushes to the dev branch.
   snapshot:
     if: github.event_name == 'pull_request' || github.ref == 'refs/heads/dev'
-    name: Build and Publish Snapshot to TestPyPI
+    name: Snapshot Release (TestPyPI)
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Repository
+      - name: Checkout Repository (Snapshot)
         uses: actions/checkout@v4
         with:
+          ref: ${{ github.ref }}   # 确保不处于 detached HEAD
           fetch-depth: 0
 
-      - name: Set Up Python
+      - name: Set Up Python (Snapshot)
         uses: actions/setup-python@v5
         with:
           python-version: "3.x"
 
-      - name: Install Build Dependencies
+      - name: Install Dependencies (Snapshot)
         run: |
-          pip install --upgrade build setuptools_scm
+          pip install --upgrade python-semantic-release build
 
-      - name: Build Package
-        run: python -m build
-
-      - name: List build artifacts
+      # 预发布模式：生成 snapshot 版本（例如 1.0.1-dev.1）
+      - name: Run Semantic Release (Snapshot)
+        id: snapshot
+        env:
+          PYPI_TOKEN: ${{ secrets.PYPI_PASSWORD }}
+          GITHUB_TOKEN: ${{ github.token }}
+        uses: python-semantic-release/python-semantic-release@v9.21.0
+        with:
+          github_token: ${{ github.token }}
+          git_committer_name: "github-actions"
+          git_committer_email: "actions@users.noreply.github.com"
+          prerelease: "true"  # 开启预发布模式
+          
+      # 构建新版包由 semantic-release 自动触发（如果配置了 build_command）
+      - name: List build artifacts (Snapshot)
         run: ls -l dist/
       
-      - name: Upload Distribution Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: python-package-distributions
-          path: dist/
-
       - name: Publish Snapshot to TestPyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           repository-url: https://test.pypi.org/legacy/
           skip-existing: true
 
-  # ─────────────────────────────────────────────────────────────
   # RELEASE JOB: For pushes to main branch.
   release:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    name: Semantic Release & Publish Official Release
+    name: Official Release
     runs-on: ubuntu-latest
     concurrency:
       group: ${{ github.workflow }}-release-${{ github.ref_name }}
       cancel-in-progress: false
     steps:
-      - name: Checkout Repository
+      - name: Checkout Repository (Release)
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.ref_name }}
+          ref: ${{ github.ref }}  # 确保 HEAD 在 main 分支上
           fetch-depth: 0
 
       - name: Reset Branch to Workflow SHA
         run: git reset --hard ${{ github.sha }}
 
-      - name: Set Up Python
+      - name: Ensure HEAD is on branch (Release)
+        run: |
+          git checkout ${{ github.ref }}
+          git status
+
+      - name: Set Up Python (Release)
         uses: actions/setup-python@v5
         with:
           python-version: "3.x"
 
-      - name: Install Dependencies
+      - name: Install Dependencies (Release)
         run: |
-          pip install --upgrade python-semantic-release build setuptools_scm
+          pip install --upgrade python-semantic-release build
 
-      - name: Build Package
-        run: python -m build
-
-      - name: Run Semantic Release
+      - name: Run Semantic Release (Official)
         id: release
         env:
           PYPI_TOKEN: ${{ secrets.PYPI_PASSWORD }}
@@ -96,7 +102,7 @@ jobs:
           git_committer_name: "github-actions"
           git_committer_email: "actions@users.noreply.github.com"
 
-      - name: Publish GitHub Release Assets
+      - name: Publish GitHub Release Assets (Official)
         if: steps.release.outputs.released == 'true'
         uses: python-semantic-release/publish-action@v9.21.0
         with:
