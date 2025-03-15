@@ -57,3 +57,4 @@ version_pattern = "v(?P<version>\\d+\\.\\d+\\.\\d+)"
 upload_to_pypi = true
 upload_to_github = true
 branch = "main"
+force = true
