@@ -1,5 +1,5 @@
 #!/bin/bash
-# setup_django_full.sh
+# starter-zh.sh
 #
 # 这个脚本自动创建一个 Django 项目，包含一个定制的用户系统（不再使用冲突的 avatar 字段）
 # 并集成 django-avatar 用于头像管理。
@@ -18,8 +18,8 @@
 #   - 运行数据库迁移，并可选创建超级用户。
 #
 # 使用方法：
-#   chmod +x setup_django_full.sh
-#   ./setup_django_full.sh
+#   chmod +x starter-zh.sh
+#   ./starter-zh.sh
 
 set -e
 
