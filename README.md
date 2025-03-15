@@ -162,6 +162,36 @@ pip install -i https://test.pypi.org/simple/ django-user-starter==0.0.1.post17 -
 
 <b>Note:</b> Please update the version above in your terminal execution to ensure test with the latest snapshot version.
 
+## Semantic Version Control
+Current project is using a tool called "python-semantic-release", which will auto detect the commit pattern from following list to adjust project version.
+
+PSR attempts to support all variants of issue closure text prefixes, but not all will work for your VCS. PSR supports the following case-insensitive prefixes and their conjugations (plural, present, & past tense):
+
+- close (closes, closing, closed)
+
+- fix (fixes, fixing, fixed)
+
+- resolve (resolves, resolving, resolved)
+
+- implement (implements, implementing, implemented)
+
+PSR also allows for a more flexible approach to identifying more than one issue number without the need of extra git trailers (although PSR does support multiple git trailers). PSR support various list formats which can be used to identify more than one issue in a list. This format will not necessarily work on your VCS. PSR currently support the following list formats:
+
+- comma-separated (ex. Closes: #123, #456, #789)
+
+- space-separated (ex. resolve: #123 #456 #789)
+
+- semicolon-separated (ex. Fixes: #123; #456; #789)
+
+- slash-separated (ex. close: #123/#456/#789)
+
+- ampersand-separated (ex. Implement: #123 & #789)
+
+- and-separated (ex. Resolve: #123 and #456 and #789)
+
+- mixed (ex. Closed: #123, #456, and #789 or Fixes: #123, #456 & #789)
+
+For more details you can find from [PSR commit parsing document](https://python-semantic-release.readthedocs.io/en/latest/commit_parsing.html)
 ## Local Build 
 
 ```bash
