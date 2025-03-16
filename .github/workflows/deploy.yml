@@ -19,7 +19,7 @@ env:
   PYPI_TOKEN: ${{ secrets.PYPI_PASSWORD }}
 
 jobs:
-  # SNAPSHOT JOB：预发布（上传 TestPyPI），用于 dev 分支或 PR
+  # SNAPSHOT JOB：用于 dev 分支或 PR（预发布，上传 TestPyPI）
   snapshot:
     if: (github.event_name == 'push' && github.ref == 'refs/heads/dev') || github.event_name == 'pull_request'
     name: Snapshot Release (TestPyPI)
@@ -67,7 +67,12 @@ jobs:
           prerelease: "true"
 
       - name: List build artifacts (Snapshot)
-        run: ls -l dist/
+        run: |
+          if [ -d dist ]; then
+            ls -l dist
+          else
+            echo "No dist directory found"
+          fi
       
       - name: Publish Snapshot to TestPyPI
         uses: pypa/gh-action-pypi-publish@release/v1
@@ -75,7 +80,7 @@ jobs:
           repository-url: https://test.pypi.org/legacy/
           skip-existing: true
 
-  # RELEASE JOB：正式发布（上传 PyPI 和 GitHub Release），用于 main 分支
+  # RELEASE JOB：用于 main 分支（正式发布，上传 PyPI 和 GitHub Release）
   release:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     name: Official Release
@@ -109,7 +114,6 @@ jobs:
       - name: Install Dependencies (Release)
         run: pip install --upgrade python-semantic-release build setuptools wheel
 
-      # 正式发布：不传 prerelease 参数，使用默认配置（branch = "main"）发布正式版本
       - name: Run Semantic Release (Official)
         id: release
         env:
@@ -120,6 +124,17 @@ jobs:
           github_token: ${{ github.token }}
           git_committer_name: "github-actions"
           git_committer_email: "actions@users.noreply.github.com"
+
+      - name: Check updated version file
+        run: cat django_user_starter/_version.py
+
+      - name: List build artifacts (Release)
+        run: |
+          if [ -d dist ]; then
+            ls -l dist
+          else
+            echo "No dist directory found"
+          fi
 
       - name: Publish GitHub Release Assets (Official)
         if: steps.release.outputs.released == 'true'
