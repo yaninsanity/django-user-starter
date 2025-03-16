@@ -7,7 +7,6 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "django_user_starter"
-dynamic = ["version"]
 description = "A Django starter script with both Chinese and English versions, auto versioning via setuptools_scm."
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -42,6 +41,6 @@ upload_to_pypi = true
 upload_to_github = true
 branch = "main"
 force = true
-build_command = "python -m pip install --upgrade setuptools build wheel && python -m build --no-isolation"
+build_command = "python -m pip install --upgrade setuptools build wheel && sleep 2 && python -m build --no-isolation"
 version_file = "django_user_starter/_version.py"
 version_file_regex = '(__version__\\s*=\\s*["\'])([^"\']*)(["\'])'
