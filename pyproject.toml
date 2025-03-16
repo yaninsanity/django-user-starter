@@ -45,4 +45,4 @@ force = true
 commit_version_file = true
 build_command = "python -m pip install --upgrade setuptools build wheel && git reset --hard HEAD && sleep 2 && python -m build --no-isolation"
 version_file = "django_user_starter/_version.py"
-version_file_regex = '(__version__\\s*=\\s*["\'])([^"\']*)(["\'])'
+version_file_regex = "(__version__\\s*=\\s*[\"'])([^\"']*)([\"'])"
