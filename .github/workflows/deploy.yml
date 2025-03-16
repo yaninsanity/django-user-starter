@@ -10,6 +10,7 @@ on:
       - main
       - dev
   workflow_dispatch:
+
 permissions:
   contents: write
   id-token: write
@@ -18,7 +19,7 @@ env:
   PYPI_TOKEN: ${{ secrets.PYPI_PASSWORD }}
 
 jobs:
-  # SNAPSHOT JOB: 用于 PR 和 dev 分支，生成预发布快照上传 TestPyPI
+  # SNAPSHOT JOB：预发布（上传 TestPyPI），用于 dev 分支或 PR
   snapshot:
     if: (github.event_name == 'push' && github.ref == 'refs/heads/dev') || github.event_name == 'pull_request'
     name: Snapshot Release (TestPyPI)
@@ -52,13 +53,12 @@ jobs:
       - name: Install Dependencies (Snapshot)
         run: pip install --upgrade python-semantic-release build setuptools wheel
 
-      # 通过环境变量覆盖，将分支设为 "dev" 并开启 prerelease 模式
       - name: Run Semantic Release (Snapshot)
         id: snapshot
         env:
           PYPI_TOKEN: ${{ secrets.PYPI_PASSWORD }}
           GITHUB_TOKEN: ${{ github.token }}
-          SEMANTIC_RELEASE_BRANCH: "dev"   # 指定预发布的分支
+          SEMANTIC_RELEASE_BRANCH: "dev"
         uses: python-semantic-release/python-semantic-release@v9.21.0
         with:
           github_token: ${{ github.token }}
@@ -66,13 +66,16 @@ jobs:
           git_committer_email: "actions@users.noreply.github.com"
           prerelease: "true"
 
+      - name: List build artifacts (Snapshot)
+        run: ls -l dist/
+      
       - name: Publish Snapshot to TestPyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           repository-url: https://test.pypi.org/legacy/
           skip-existing: true
 
-  # RELEASE JOB: 用于 main 分支，生成正式发布版本上传到 PyPI 与 GitHub Release
+  # RELEASE JOB：正式发布（上传 PyPI 和 GitHub Release），用于 main 分支
   release:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     name: Official Release
@@ -104,7 +107,7 @@ jobs:
           python-version: "3.x"
 
       - name: Install Dependencies (Release)
-        run: pip install --upgrade python-semantic-release build wheel setuptools
+        run: pip install --upgrade python-semantic-release build setuptools wheel
 
       # 正式发布：不传 prerelease 参数，使用默认配置（branch = "main"）发布正式版本
       - name: Run Semantic Release (Official)
