@@ -11,6 +11,7 @@ dynamic = ["version"]
 description = "A Django starter script with both Chinese and English versions, auto versioning via semantic-release."
 readme = "README.md"
 license = "MIT"
+license-files = ["LICENSE"]
 keywords = ["django", "starter", "shell"]
 authors = [
   { name = "yaninsanity", email = "admin@jl-blog.com" }
