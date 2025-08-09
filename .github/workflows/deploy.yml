@@ -46,6 +46,7 @@ jobs:
         id: release
         env:
           GITHUB_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ github.token }}
         uses: python-semantic-release/python-semantic-release@v9.21.0
         with:
           github_token: ${{ github.token }}
@@ -102,6 +103,7 @@ jobs:
         id: release
         env:
           GITHUB_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ github.token }}
         uses: python-semantic-release/python-semantic-release@v9.21.0
         with:
           github_token: ${{ github.token }}
@@ -111,12 +113,3 @@ jobs:
       - name: Publish to PyPI
         if: steps.release.outputs.released == 'true'
         uses: pypa/gh-action-pypi-publish@release/v1
-
-      - name: Create GitHub Release
-        if: steps.release.outputs.released == 'true'
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ steps.release.outputs.tag }}
-          name: Release ${{ steps.release.outputs.tag }}
-          body: "Auto-generated release from semantic-release"
-          files: dist/*
