@@ -1,4 +1,50 @@
+# Project specific
 *myproject*
+
+# Virtual environments
 *venv*
-*.egg-info
-dist
+.venv/
+venv/
+env/
+ENV/
+
+# Build artifacts
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Testing
+.coverage
+.pytest_cache/
+.tox/
+coverage.xml
+htmlcov/
+
+# Local development
+.env
+.env.local
+.env.*.local
+
