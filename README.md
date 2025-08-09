@@ -98,7 +98,7 @@ Make the Script Executable:
 chmod +x starter-en.sh
 # Run the Script, run with English Prompt
 sh starter-en.sh
-# run with Chinese prompt:
+# Run the Script, run with Chinese Prompt
 chmod +x starter-zh.sh
 sh starter-zh.sh
 ```
