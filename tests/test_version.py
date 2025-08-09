@@ -16,7 +16,7 @@ class TestVersion(unittest.TestCase):
     def test_version_format(self):
         """Test version follows semantic versioning format."""
         # Basic semantic version regex pattern
-        pattern = r"^\d+\.\d+\.\d+(?:[.-][\w\d]+)*$"
+        pattern = r"^\d+\.\d+\.\d+(?:-[\w\d\.]+)*$"
         self.assertRegex(__version__, pattern)
 
 
