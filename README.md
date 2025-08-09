@@ -29,11 +29,11 @@
 [pypi-img]: https://badge.fury.io/py/django-user-starter.svg
 [cicd-img]: https://github.com/yaninsanity/django-user-starter/actions/workflows/deploy.yml/badge.svg
 [quality-img]: https://github.com/yaninsanity/django-user-starter/actions/workflows/quality.yml/badge.svg
-[coverage-img]: https://codecov.io/gh/yaninsanity/django-user-starter/branch/main/graph/badge.svg
+[coverage-img]: https://img.shields.io/badge/coverage-91%25-brightgreen
 [pypi-url]: https://pypi.org/project/django-user-starter/
 [cicd]: https://github.com/yaninsanity/django-user-starter/actions/workflows/deploy.yml
 [quality-url]: https://github.com/yaninsanity/django-user-starter/actions/workflows/quality.yml
-[coverage-url]: https://codecov.io/gh/yaninsanity/django-user-starter
+[coverage-url]: https://github.com/yaninsanity/django-user-starter/actions/workflows/quality.yml
 
 
 
@@ -177,19 +177,19 @@ If you would like to contribute to this project, please fork the repository and 
    ```bash
    python -m venv .venv
    source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-   make install-dev
+   make install-dev PYTHON=.venv/bin/python
    ```
 
 3. **Run code quality checks:**
    ```bash
-   make lint      # Check code style
-   make format    # Format code
-   make test      # Run tests
+   make lint PYTHON=.venv/bin/python      # Check code style
+   make format PYTHON=.venv/bin/python    # Format code
+   make test PYTHON=.venv/bin/python      # Run tests
    ```
 
 4. **Build package:**
    ```bash
-   make build
+   make build PYTHON=.venv/bin/python
    ```
 
 ### Code Standards
@@ -214,13 +214,18 @@ This project follows conventional commits:
 - Example: `chore: update docs [skip-release]`
 
 ## Test Snapshot
-To have a snapshot version to test, you can deploy to dev branch, and install snapshot version with following:
+To test the latest development version, push to the `dev` branch which automatically publishes timestamped snapshots to TestPyPI:
 
 ```bash
-pip install -i https://test.pypi.org/simple/ django-user-starter==0.0.1.post17 --extra-index-url https://pypi.org/simple django-user-starter
+pip install -i https://test.pypi.org/simple/ django-user-starter --extra-index-url https://pypi.org/simple
 ```
 
-<b>Note:</b> Please update the version above in your terminal execution to ensure test with the latest snapshot version.
+For a specific dev version (format: `0.1.7.dev20250809143000`):
+```bash
+pip install -i https://test.pypi.org/simple/ django-user-starter==0.1.7.dev20250809143000 --extra-index-url https://pypi.org/simple
+```
+
+<b>Note:</b> Dev versions use timestamp format and are automatically generated from the `dev` branch.
 
 ## Semantic Version Control
 Current project is using a tool called "python-semantic-release", which will auto detect the commit pattern from following list to adjust project version.
@@ -254,10 +259,24 @@ PSR also allows for a more flexible approach to identifying more than one issue 
 For more details you can find from [PSR commit parsing document](https://python-semantic-release.readthedocs.io/en/latest/commit_parsing.html)
 ## Local Build 
 
+For local development and testing:
+
 ```bash
-pip install --upgrade pip
-pip install build
-python3 -m build
+# Install development dependencies
+make install-dev PYTHON=.venv/bin/python
+
+# Run all quality checks
+make lint test PYTHON=.venv/bin/python
+
+# Build the package
+make build PYTHON=.venv/bin/python
+```
+
+Or manually with virtual environment:
+```bash
+.venv/bin/pip install --upgrade pip build twine
+.venv/bin/python -m build
+.venv/bin/twine check dist/*
 ```
 
 

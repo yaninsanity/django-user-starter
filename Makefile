@@ -1,5 +1,8 @@
 .PHONY: help install install-dev clean lint format test build upload-test upload check-version pre-commit-install pre-commit-run
 
+# Python executable - can be overridden with: make PYTHON=/path/to/python
+PYTHON ?= python
+
 # Default target
 help:
 	@echo "Available commands:"
@@ -15,13 +18,16 @@ help:
 	@echo "  check-version     Check current version"
 	@echo "  pre-commit-install Install pre-commit hooks"
 	@echo "  pre-commit-run    Run pre-commit on all files"
+	@echo ""
+	@echo "Note: Use PYTHON=/path/to/python to specify Python executable"
+	@echo "Example: make lint PYTHON=.venv/bin/python"
 
 # Installation
 install:
-	pip install -e .
+	$(PYTHON) -m pip install -e .
 
 install-dev:
-	pip install -e ".[dev]"
+	$(PYTHON) -m pip install -e ".[dev]"
 
 # Cleaning
 clean:
@@ -33,35 +39,35 @@ clean:
 
 # Code quality
 lint:
-	flake8 django_user_starter/
-	isort --check-only django_user_starter/
-	black --check django_user_starter/
+	$(PYTHON) -m flake8 django_user_starter/ tests/
+	$(PYTHON) -m isort --check-only django_user_starter/ tests/
+	$(PYTHON) -m black --check django_user_starter/ tests/
 
 format:
-	isort django_user_starter/
-	black django_user_starter/
+	$(PYTHON) -m isort django_user_starter/ tests/
+	$(PYTHON) -m black django_user_starter/ tests/
 
 # Testing
 test:
-	pytest
+	$(PYTHON) -m pytest tests/ --cov=django_user_starter --cov-report=term-missing
 
 # Build and upload
 build:
-	python -m build
+	$(PYTHON) -m build
 
 upload-test:
-	twine upload --repository testpypi dist/*
+	$(PYTHON) -m twine upload --repository testpypi dist/*
 
 upload:
-	twine upload dist/*
+	$(PYTHON) -m twine upload dist/*
 
 # Version management
 check-version:
-	@echo "Current version: $$(python -c 'from django_user_starter import __version__; print(__version__)')"
+	@echo "Current version: $$($(PYTHON) -c 'from django_user_starter import __version__; print(__version__)')"
 
 # Pre-commit hooks
 pre-commit-install:
-	pre-commit install
+	$(PYTHON) -m pre_commit install
 
 pre-commit-run:
-	pre-commit run --all-files
+	$(PYTHON) -m pre_commit run --all-files

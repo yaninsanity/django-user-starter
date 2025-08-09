@@ -65,6 +65,7 @@ if [[ ! -d "$venv_dir" ]]; then
 fi
 
 echo "激活虚拟环境..."
+# shellcheck disable=SC1090
 source "$venv_dir/bin/activate"
 
 # -------------------------
@@ -297,13 +298,14 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.views.generic import TemplateView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('avatar/', include('avatar.urls')),
     path('$app_name/', include('$app_name.urls', namespace='$app_name')),
     # 可选：你可以取消下面一行的注释，将主页指向自定义模板
-    # path('', TemplateView.as_view(template_name="home.html"), name='home'),
+    path('', TemplateView.as_view(template_name="home.html"), name='home'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 EOF
 
