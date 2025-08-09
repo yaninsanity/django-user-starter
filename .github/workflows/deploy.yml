@@ -12,6 +12,14 @@ on:
         required: false
         default: false
         type: boolean
+      target_branch:
+        description: 'Target branch for release'
+        required: false
+        default: 'main'
+        type: choice
+        options:
+          - main
+          - dev
 
 permissions:
   contents: write
@@ -20,7 +28,7 @@ permissions:
 jobs:
   # SNAPSHOT JOB：用于 dev 分支（预发布，上传 TestPyPI）
   snapshot:
-    if: github.ref == 'refs/heads/dev'
+    if: github.ref == 'refs/heads/dev' || (github.event_name == 'workflow_dispatch' && github.event.inputs.target_branch == 'dev')
     name: Snapshot Release (TestPyPI)
     runs-on: ubuntu-latest
     steps:
@@ -54,13 +62,15 @@ jobs:
           github_token: ${{ github.token }}
           git_committer_name: "github-actions"
           git_committer_email: "actions@users.noreply.github.com"
-          prerelease: "true"
+          prerelease: true
+          force: ${{ github.event.inputs.force_release == 'true' }}
 
       - name: Build package if no release (Snapshot)
         if: steps.release.outputs.released != 'true'
         run: |
           # Create a dev version for TestPyPI
-          DEV_VERSION="$(cat django_user_starter/_version.py | grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+').dev$(date +%Y%m%d%H%M%S)"
+          CURRENT_VERSION=$(python -c "from django_user_starter import __version__; print(__version__)")
+          DEV_VERSION="${CURRENT_VERSION}.dev$(date +%Y%m%d%H%M%S)"
           echo "__version__ = \"$DEV_VERSION\"" > django_user_starter/_version.py
           echo "Building dev version: $DEV_VERSION"
           python -m build
@@ -73,7 +83,7 @@ jobs:
 
   # RELEASE JOB：用于 main 分支（正式发布，上传 PyPI 和 GitHub Release）
   release:
-    if: github.ref == 'refs/heads/main' && (!contains(github.event.head_commit.message, '[skip-release]') || github.event.inputs.force_release == 'true')
+    if: (github.ref == 'refs/heads/main' && (!contains(github.event.head_commit.message, '[skip-release]') || github.event.inputs.force_release == 'true')) || (github.event_name == 'workflow_dispatch' && github.event.inputs.target_branch == 'main')
     name: Official Release
     runs-on: ubuntu-latest
     steps:
@@ -107,6 +117,7 @@ jobs:
           github_token: ${{ github.token }}
           git_committer_name: "github-actions"
           git_committer_email: "actions@users.noreply.github.com"
+          force: ${{ github.event.inputs.force_release == 'true' }}
 
       - name: Publish to PyPI
         if: steps.release.outputs.released == 'true'
@@ -114,7 +125,9 @@ jobs:
 
       - name: Create GitHub Release
         if: steps.release.outputs.released == 'true'
-        uses: python-semantic-release/publish-action@v9.21.0
+        uses: softprops/action-gh-release@v2
         with:
-          github_token: ${{ github.token }}
-          tag: ${{ steps.release.outputs.tag }}
+          tag_name: ${{ steps.release.outputs.tag }}
+          name: Release ${{ steps.release.outputs.tag }}
+          body: "Auto-generated release from semantic-release"
+          files: dist/*
