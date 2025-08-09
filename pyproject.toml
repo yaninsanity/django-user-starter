@@ -64,7 +64,7 @@ remove_dist = false
 
 [tool.black]
 line-length = 88
-target-version = ['py37']
+target-version = ['py39']
 include = '\.pyi?$'
 extend-exclude = '''
 /(
