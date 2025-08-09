@@ -5,21 +5,10 @@ on:
     branches:
       - main
       - dev
-  workflow_dispatch:
-    inputs:
-      force_release:
-        description: 'Force release (bypass safety checks)'
-        required: false
-        default: false
-        type: boolean
-      target_branch:
-        description: 'Target branch for release'
-        required: false
-        default: 'main'
-        type: choice
-        options:
-          - main
-          - dev
+  pull_request:
+    types: [closed]
+    branches:
+      - main
 
 permissions:
   contents: write
@@ -28,7 +17,7 @@ permissions:
 jobs:
   # SNAPSHOT JOB：用于 dev 分支（预发布，上传 TestPyPI）
   snapshot:
-    if: github.ref == 'refs/heads/dev' || (github.event_name == 'workflow_dispatch' && github.event.inputs.target_branch == 'dev')
+    if: github.ref == 'refs/heads/dev'
     name: Snapshot Release (TestPyPI)
     runs-on: ubuntu-latest
     steps:
@@ -63,7 +52,6 @@ jobs:
           git_committer_name: "github-actions"
           git_committer_email: "actions@users.noreply.github.com"
           prerelease: true
-          force: ${{ github.event.inputs.force_release == 'true' }}
 
       - name: Build package if no release (Snapshot)
         if: steps.release.outputs.released != 'true'
@@ -83,7 +71,9 @@ jobs:
 
   # RELEASE JOB：用于 main 分支（正式发布，上传 PyPI 和 GitHub Release）
   release:
-    if: (github.ref == 'refs/heads/main' && (!contains(github.event.head_commit.message, '[skip-release]') || github.event.inputs.force_release == 'true')) || (github.event_name == 'workflow_dispatch' && github.event.inputs.target_branch == 'main')
+    if: |
+      (github.ref == 'refs/heads/main' && !contains(github.event.head_commit.message, '[skip-release]')) ||
+      (github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'main')
     name: Official Release
     runs-on: ubuntu-latest
     steps:
@@ -117,7 +107,6 @@ jobs:
           github_token: ${{ github.token }}
           git_committer_name: "github-actions"
           git_committer_email: "actions@users.noreply.github.com"
-          force: ${{ github.event.inputs.force_release == 'true' }}
 
       - name: Publish to PyPI
         if: steps.release.outputs.released == 'true'

@@ -1,4 +1,4 @@
-.PHONY: help install install-dev clean lint format test build upload-test upload check-version pre-commit-install pre-commit-run
+.PHONY: help install install-dev clean lint format test build check-version pre-commit-install pre-commit-run
 
 # Python executable - can be overridden with: make PYTHON=/path/to/python
 PYTHON ?= python
@@ -12,15 +12,18 @@ help:
 	@echo "  lint              Run code linting"
 	@echo "  format            Format code with black and isort"
 	@echo "  test              Run tests"
-	@echo "  build             Build package"
-	@echo "  upload-test       Upload to TestPyPI"
-	@echo "  upload            Upload to PyPI"
+	@echo "  build             Build package (for local testing)"
 	@echo "  check-version     Check current version"
 	@echo "  pre-commit-install Install pre-commit hooks"
 	@echo "  pre-commit-run    Run pre-commit on all files"
 	@echo ""
 	@echo "Note: Use PYTHON=/path/to/python to specify Python executable"
 	@echo "Example: make lint PYTHON=.venv/bin/python"
+	@echo ""
+	@echo "📦 Publishing is fully automated via CI/CD:"
+	@echo "  - Push to 'dev' branch → TestPyPI"
+	@echo "  - Push to 'main' branch → PyPI"
+	@echo "  - Use semantic commits: fix:, feat:, feat!:"
 
 # Installation
 install:
@@ -54,12 +57,6 @@ test:
 # Build and upload
 build:
 	$(PYTHON) -m build
-
-upload-test:
-	$(PYTHON) -m twine upload --repository testpypi dist/*
-
-upload:
-	$(PYTHON) -m twine upload dist/*
 
 # Version management
 check-version:
