@@ -5,60 +5,50 @@ on:
     branches:
       - main
       - dev
-  pull_request:
-    branches:
-      - main
-      - dev
   workflow_dispatch:
+    inputs:
+      force_release:
+        description: 'Force release (bypass safety checks)'
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: write
   id-token: write
 
-env:
-  PYPI_TOKEN: ${{ secrets.PYPI_PASSWORD }}
-
 jobs:
-  # SNAPSHOT JOB：用于 dev 分支或 PR（预发布，上传 TestPyPI）
+  # SNAPSHOT JOB：用于 dev 分支（预发布，上传 TestPyPI）
   snapshot:
-    if: (github.event_name == 'push' && github.ref == 'refs/heads/dev') || github.event_name == 'pull_request'
+    if: github.ref == 'refs/heads/dev'
     name: Snapshot Release (TestPyPI)
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Repository (Snapshot)
+      - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.ref }}
           fetch-depth: 0
 
-      - name: Ensure HEAD is on branch (Snapshot)
-        run: |
-          if [[ "${GITHUB_REF}" =~ ^refs/pull/ ]]; then
-            echo "PR detected, switching to base branch: ${GITHUB_BASE_REF}"
-            git checkout "${GITHUB_BASE_REF}"
-          else
-            echo "Switching to branch: ${GITHUB_REF#refs/heads/}"
-            git checkout "${GITHUB_REF#refs/heads/}"
-          fi
-          git status
-        env:
-          GITHUB_REF: ${{ github.ref }}
-          GITHUB_BASE_REF: ${{ github.base_ref }}
-
-      - name: Set Up Python (Snapshot)
+      - name: Set Up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.x"
+          python-version: "3.11"
 
-      - name: Install Dependencies (Snapshot)
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install Dependencies
         run: pip install --upgrade python-semantic-release build setuptools wheel
 
       - name: Run Semantic Release (Snapshot)
-        id: snapshot
+        id: release
         env:
-          PYPI_TOKEN: ${{ secrets.PYPI_PASSWORD }}
           GITHUB_TOKEN: ${{ github.token }}
-          SEMANTIC_RELEASE_BRANCH: "dev"
         uses: python-semantic-release/python-semantic-release@v9.21.0
         with:
           github_token: ${{ github.token }}
@@ -66,15 +56,8 @@ jobs:
           git_committer_email: "actions@users.noreply.github.com"
           prerelease: "true"
 
-      - name: List build artifacts (Snapshot)
-        run: |
-          if [ -d dist ]; then
-            ls -l dist
-          else
-            echo "No dist directory found"
-          fi
-      
       - name: Publish Snapshot to TestPyPI
+        if: steps.release.outputs.released == 'true'
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           repository-url: https://test.pypi.org/legacy/
@@ -82,42 +65,34 @@ jobs:
 
   # RELEASE JOB：用于 main 分支（正式发布，上传 PyPI 和 GitHub Release）
   release:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && (!contains(github.event.head_commit.message, '[skip-release]') || github.event.inputs.force_release == 'true')
     name: Official Release
     runs-on: ubuntu-latest
-    concurrency:
-      group: ${{ github.workflow }}-release-${{ github.ref }}
-      cancel-in-progress: false
     steps:
-      - name: Checkout Repository (Release)
+      - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.ref }}
           fetch-depth: 0
 
-      - name: Reset Branch to Workflow SHA (Release)
-        run: git reset --hard ${{ github.sha }}
-
-      - name: Ensure HEAD is on branch (Release)
-        run: |
-          echo "Switching to branch: ${GITHUB_REF#refs/heads/}"
-          git checkout "${GITHUB_REF#refs/heads/}"
-          git status
-        env:
-          GITHUB_REF: ${{ github.ref }}
-
-      - name: Set Up Python (Release)
+      - name: Set Up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.x"
+          python-version: "3.11"
 
-      - name: Install Dependencies (Release)
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install Dependencies
         run: pip install --upgrade python-semantic-release build setuptools wheel
 
-      - name: Run Semantic Release (Official)
+      - name: Run Semantic Release
         id: release
         env:
-          PYPI_TOKEN: ${{ secrets.PYPI_PASSWORD }}
           GITHUB_TOKEN: ${{ github.token }}
         uses: python-semantic-release/python-semantic-release@v9.21.0
         with:
@@ -125,18 +100,11 @@ jobs:
           git_committer_name: "github-actions"
           git_committer_email: "actions@users.noreply.github.com"
 
-      - name: Check updated version file
-        run: cat django_user_starter/_version.py
+      - name: Publish to PyPI
+        if: steps.release.outputs.released == 'true'
+        uses: pypa/gh-action-pypi-publish@release/v1
 
-      - name: List build artifacts (Release)
-        run: |
-          if [ -d dist ]; then
-            ls -l dist
-          else
-            echo "No dist directory found"
-          fi
-
-      - name: Publish GitHub Release Assets (Official)
+      - name: Create GitHub Release
         if: steps.release.outputs.released == 'true'
         uses: python-semantic-release/publish-action@v9.21.0
         with:

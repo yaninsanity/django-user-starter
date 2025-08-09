@@ -8,26 +8,32 @@
 [![LinkedIn][linkedin-shield]][linkedin-url]
 
 [![Pypi][pypi-img]][pypi-url]
-[![cicd][cicd-img]][cicd]
+[![CICD][cicd-img]][cicd]
+[![Code Quality][quality-img]][quality-url]
+[![Coverage][coverage-img]][coverage-url]
 
 
 
-[contributors-shield]: https://img.shields.io/github/contributors/othneildrew/Best-README-Template.svg?style=for-the-badge
+[contributors-shield]: https://img.shields.io/github/contributors/yaninsanity/django-user-starter.svg?style=for-the-badge
 [contributors-url]: https://github.com/yaninsanity/django-user-starter/graphs/contributors
-[forks-shield]: https://img.shields.io/github/forks/othneildrew/Best-README-Template.svg?style=for-the-badge
+[forks-shield]: https://img.shields.io/github/forks/yaninsanity/django-user-starter.svg?style=for-the-badge
 [forks-url]: https://github.com/yaninsanity/django-user-starter/forks
-[stars-shield]: https://img.shields.io/github/stars/othneildrew/Best-README-Template.svg?style=for-the-badge
+[stars-shield]: https://img.shields.io/github/stars/yaninsanity/django-user-starter.svg?style=for-the-badge
 [stars-url]: https://github.com/yaninsanity/django-user-starter/stargazers
-[issues-shield]: https://img.shields.io/github/issues/othneildrew/Best-README-Template.svg?style=for-the-badge
+[issues-shield]: https://img.shields.io/github/issues/yaninsanity/django-user-starter.svg?style=for-the-badge
 [issues-url]: https://github.com/yaninsanity/django-user-starter/issues
-[license-shield]: https://img.shields.io/github/license/othneildrew/Best-README-Template.svg?style=for-the-badge
+[license-shield]: https://img.shields.io/github/license/yaninsanity/django-user-starter.svg?style=for-the-badge
 [license-url]: https://github.com/yaninsanity/django-user-starter/blob/main/LICENSE
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url]: https://www.linkedin.com/in/zerenyan/
-[pypi-img]: https://badge.fury.io/py/readme-renderer.svg
-[cicd-img]: https://github.com/pypa/readme_renderer/actions/workflows/ci.yml/badge.svg
-[pypi-url]: https://pypi.org/project/django-user-starter
+[pypi-img]: https://badge.fury.io/py/django-user-starter.svg
+[cicd-img]: https://github.com/yaninsanity/django-user-starter/actions/workflows/deploy.yml/badge.svg
+[quality-img]: https://github.com/yaninsanity/django-user-starter/actions/workflows/quality.yml/badge.svg
+[coverage-img]: https://codecov.io/gh/yaninsanity/django-user-starter/branch/main/graph/badge.svg
+[pypi-url]: https://pypi.org/project/django-user-starter/
 [cicd]: https://github.com/yaninsanity/django-user-starter/actions/workflows/deploy.yml
+[quality-url]: https://github.com/yaninsanity/django-user-starter/actions/workflows/quality.yml
+[coverage-url]: https://codecov.io/gh/yaninsanity/django-user-starter
 
 
 
@@ -52,6 +58,12 @@ This repository contains two shell scripts (`starter-en.sh` && `starter-zh.sh`) 
 
 # Distribution & CI/CD
 Our CI/CD pipeline publishes snapshot releases to [TestPyPI](https://test.pypi.org/project/django-user-starter/) and official releases to [PyPI](https://pypi.org/project/django-user-starter/). This means you can always grab the latest snapshot for testing or the stable release for production use!
+
+## Release Safety Features
+- **Automatic Release Detection**: Only releases when conventional commits indicate changes
+- **Skip Release Option**: Add `[skip-release]` to commit messages to prevent publishing
+- **Manual Override**: Use GitHub Actions "Run workflow" for manual control
+- **Branch Protection**: `dev` branch publishes to TestPyPI, `main` branch to PyPI
 
 # CLI Quick Start
 For an even quicker start, install the package via pip and use the CLI entry points:
@@ -87,7 +99,7 @@ chmod +x starter-en.sh
 # Run the Script, run with English Prompt
 sh starter-en.sh
 # run with Chinese prompt:
-chmod +x starter-en.sh
+chmod +x starter-zh.sh
 sh starter-zh.sh
 ```
 
@@ -152,6 +164,54 @@ The script configures MEDIA_URL and MEDIA_ROOT in settings.py to handle media fi
 
 ## Contributing
 If you would like to contribute to this project, please fork the repository and submit a pull request. Any contributions, whether bug fixes, feature additions, or documentation improvements, are welcome.
+
+### Development Setup
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/yaninsanity/django-user-starter.git
+   cd django-user-starter
+   ```
+
+2. **Set up development environment:**
+   ```bash
+   python -m venv .venv
+   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+   make install-dev
+   ```
+
+3. **Run code quality checks:**
+   ```bash
+   make lint      # Check code style
+   make format    # Format code
+   make test      # Run tests
+   ```
+
+4. **Build package:**
+   ```bash
+   make build
+   ```
+
+### Code Standards
+- **Code Formatting**: We use `black` and `isort` for consistent code formatting
+- **Linting**: We use `flake8` for code linting
+- **Testing**: We use `pytest` for testing with coverage reporting
+- **Security**: We use `bandit` and `safety` for security scanning
+- **Version Control**: We use semantic versioning with `python-semantic-release`
+
+### Commit Convention
+This project follows conventional commits:
+- `feat:` for new features
+- `fix:` for bug fixes
+- `docs:` for documentation changes
+- `style:` for formatting changes
+- `refactor:` for code refactoring
+- `test:` for adding tests
+- `chore:` for maintenance tasks
+
+**Release Control**:
+- Add `[skip-release]` to commit message to prevent automatic publishing
+- Example: `chore: update docs [skip-release]`
 
 ## Test Snapshot
 To have a snapshot version to test, you can deploy to dev branch, and install snapshot version with following:
