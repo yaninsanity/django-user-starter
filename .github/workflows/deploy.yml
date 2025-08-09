@@ -56,8 +56,16 @@ jobs:
           git_committer_email: "actions@users.noreply.github.com"
           prerelease: "true"
 
+      - name: Build package if no release (Snapshot)
+        if: steps.release.outputs.released != 'true'
+        run: |
+          # Create a dev version for TestPyPI
+          DEV_VERSION="$(cat django_user_starter/_version.py | grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+').dev$(date +%Y%m%d%H%M%S)"
+          echo "__version__ = \"$DEV_VERSION\"" > django_user_starter/_version.py
+          echo "Building dev version: $DEV_VERSION"
+          python -m build
+
       - name: Publish Snapshot to TestPyPI
-        if: steps.release.outputs.released == 'true'
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           repository-url: https://test.pypi.org/legacy/
