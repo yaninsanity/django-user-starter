@@ -57,13 +57,16 @@ This repository contains two shell scripts (`starter-en.sh` && `starter-zh.sh`) 
 
 
 # Distribution & CI/CD
-Our CI/CD pipeline publishes snapshot releases to [TestPyPI](https://test.pypi.org/project/django-user-starter/) and official releases to [PyPI](https://pypi.org/project/django-user-starter/). This means you can always grab the latest snapshot for testing or the stable release for production use!
+Our CI/CD pipeline automatically publishes releases to [TestPyPI](https://test.pypi.org/project/django-user-starter/) and [PyPI](https://pypi.org/project/django-user-starter/) based on semantic commits!
 
-## Release Safety Features
-- **Automatic Release Detection**: Only releases when conventional commits indicate changes
-- **Skip Release Option**: Add `[skip-release]` to commit messages to prevent publishing
-- **Manual Override**: Use GitHub Actions "Run workflow" for manual control
-- **Branch Protection**: `dev` branch publishes to TestPyPI, `main` branch to PyPI
+## Automated Release Features
+- **Semantic Versioning**: Uses conventional commits (`feat:`, `fix:`, `feat!:`) to automatically determine version bumps
+- **Automatic Publishing**: 
+  - `dev` branch → TestPyPI (snapshot releases)
+  - `main` branch → PyPI (stable releases)
+  - PR merges to `main` → Automatic release
+- **Skip Release**: Add `[skip-release]` to commit messages to prevent publishing
+- **Zero Manual Work**: Just commit with proper format and push!
 
 # CLI Quick Start
 For an even quicker start, install the package via pip and use the CLI entry points:
@@ -209,9 +212,11 @@ This project follows conventional commits:
 - `test:` for adding tests
 - `chore:` for maintenance tasks
 
-**Release Control**:
-- Add `[skip-release]` to commit message to prevent automatic publishing
-- Example: `chore: update docs [skip-release]`
+**Automatic Release Examples**:
+- `fix: resolve login issue` → Patch release (0.1.7 → 0.1.8)
+- `feat: add new authentication` → Minor release (0.1.7 → 0.2.0)
+- `feat!: breaking API changes` → Major release (0.1.7 → 1.0.0)
+- `chore: update docs [skip-release]` → No release
 
 ## Test Snapshot
 To test the latest development version, push to the `dev` branch which automatically publishes timestamped snapshots to TestPyPI:
