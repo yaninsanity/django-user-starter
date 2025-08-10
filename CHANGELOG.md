@@ -1,6 +1,48 @@
 # CHANGELOG
 
 
+## v0.2.0 (2025-08-10)
+
+### Bug Fixes
+
+- Improve CI/CD pipeline and add release automation
+  ([`f5a9b5a`](https://github.com/yaninsanity/django-user-starter/commit/f5a9b5aaccdad328e08d6f3720278c17440999c0))
+
+- Fix semantic-release configuration with angular parser - Improve deploy.yml workflow with better
+  conditions - Add manual workflow dispatch with branch selection - Fix dev version generation logic
+  - Add release.sh script for automated releases - Update GitHub release creation to use proper
+  action
+
+- Improve consistency
+  ([`3b2c88c`](https://github.com/yaninsanity/django-user-starter/commit/3b2c88c59546eb4400162f49eb691b38c6d8851d))
+
+### Features
+
+- Fully automate CI/CD pipeline
+  ([`0cb9820`](https://github.com/yaninsanity/django-user-starter/commit/0cb982026563e1f15e6136d5d6439193cdcaa4cc))
+
+- Remove manual release.sh script for complete automation - Update deploy.yml to trigger on PR
+  merges to main - Simplify Makefile by removing manual upload commands - Update README with
+  automated release workflow examples - CI/CD now handles everything: dev→TestPyPI, main→PyPI
+
+
+## v0.1.7 (2025-03-16)
+
+### Bug Fixes
+
+- Add back missing version_file_regex
+  ([`f38808c`](https://github.com/yaninsanity/django-user-starter/commit/f38808c4dbf1bf7413e84092a381bbdfd43ad3b9))
+
+- Add commit version file to true
+  ([`b2ac63f`](https://github.com/yaninsanity/django-user-starter/commit/b2ac63f099c26b208af356059b098be82ada3bdc))
+
+- Fix commit version file order and desc
+  ([`8399fcb`](https://github.com/yaninsanity/django-user-starter/commit/8399fcb390780f072af2945cda2a28b32c4067cc))
+
+- Remove dynamic version to see if version file been trigger
+  ([`83ceae0`](https://github.com/yaninsanity/django-user-starter/commit/83ceae0a0d1cf02c6f28e2e0a19bdbe8f2c5531a))
+
+
 ## v0.1.6 (2025-03-15)
 
 ### Bug Fixes
