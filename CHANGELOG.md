@@ -1,5 +1,56 @@
 # CHANGELOG
 
+## v1.0.0 (2025-08-09) - MAJOR REFACTOR
+
+### 🚀 Breaking Changes
+
+- **Complete architecture rewrite** - Replaced complex template system with simple string replacement
+- **Removed all bloat** - Eliminated 90% of redundant files and complex enterprise naming
+- **New clean CLI** - Simple, focused command-line interface without confusing options
+- **No more template errors** - Fixed all Jinja2 rendering issues by removing templates entirely
+
+### ✨ Features
+
+- **Simple string-based generation** - No more complex template engine, just clean string replacement
+- **Flexible database support** - SQLite, PostgreSQL, MySQL with environment-based configuration
+- **Optional REST API** - Clean DRF integration when needed
+- **Smart Docker support** - Optimized Dockerfiles with proper security and multi-stage builds
+- **Docker Compose included** - Ready-to-use development environment
+- **Clean project structure** - Only generates necessary files, no bloat
+
+### 🗑️ Removed
+
+- Complex Jinja2 templates (source of all rendering errors)
+- Enterprise-grade naming and unnecessary complexity
+- Redundant configuration files
+- Examples folder and test pollution files
+- Complex CLI with too many options
+
+### 📁 New Structure
+
+```
+django_user_starter/
+├── __init__.py
+├── _version.py
+├── cli.py          # Clean, simple CLI
+├── generator.py    # String-based generator
+└── requirements.txt
+```
+
+### 🎯 Usage
+
+```bash
+# Basic project
+django-starter myproject
+
+# With PostgreSQL and API
+django-starter webapp --database postgresql --api
+
+# MySQL without Docker
+django-starter blog --database mysql --no-docker
+```
+
+---
 
 ## v0.2.0 (2025-08-10)
 
