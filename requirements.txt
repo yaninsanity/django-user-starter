@@ -1,4 +1,0 @@
-Django>=3.2
-django-avatar
-pillow
-django-jazzmin

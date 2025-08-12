@@ -1,0 +1,144 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+    types: [closed]
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  # Quality & Testing Job - Runs on all pushes and PRs
+  quality:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Cache pip dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/pyproject.toml') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e ".[dev]"
+
+    - name: Code quality checks
+      run: |
+        black --check django_user_starter/ tests/
+        isort --check-only django_user_starter/ tests/
+        flake8 django_user_starter/ tests/
+
+    - name: Security scan (Python 3.11 only)
+      if: matrix.python-version == '3.11'
+      run: |
+        bandit -r django_user_starter/
+
+    - name: Type checking (Python 3.11 only)
+      if: matrix.python-version == '3.11'
+      run: |
+        mypy django_user_starter/
+
+    - name: Run tests with coverage
+      run: |
+        pytest --cov=django_user_starter --cov-report=xml --cov-report=term-missing
+
+    - name: Upload coverage to Codecov
+      if: matrix.python-version == '3.11'
+      uses: codecov/codecov-action@v4
+      with:
+        file: ./coverage.xml
+        flags: unittests
+
+  # Snapshot Release Job - Develop branch to TestPyPI
+  snapshot:
+    needs: quality
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+
+    - name: Install build tools
+      run: |
+        python -m pip install --upgrade pip
+        pip install build twine python-semantic-release
+
+    - name: Create development version
+      run: |
+        CURRENT_VERSION=$(python -c "from django_user_starter import __version__; print(__version__)")
+        DEV_VERSION="${CURRENT_VERSION}.dev$(date +%Y%m%d%H%M%S)"
+        echo "__version__ = \"$DEV_VERSION\"" > django_user_starter/_version.py
+        echo "Building dev version: $DEV_VERSION"
+
+    - name: Build package
+      run: python -m build
+
+    - name: Publish to TestPyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        repository-url: https://test.pypi.org/legacy/
+        skip-existing: true
+
+  # Production Release Job - Main branch with semantic versioning
+  release:
+    needs: quality
+    if: |
+      (github.ref == 'refs/heads/main' && github.event_name == 'push' && !contains(github.event.head_commit.message, '[skip-release]')) ||
+      (github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'main')
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        token: ${{ github.token }}
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+
+    - name: Install release tools
+      run: |
+        python -m pip install --upgrade pip
+        pip install build python-semantic-release
+
+    - name: Semantic Release
+      id: release
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+        GH_TOKEN: ${{ github.token }}
+      uses: python-semantic-release/python-semantic-release@v9.21.0
+      with:
+        github_token: ${{ github.token }}
+        git_committer_name: "github-actions[bot]"
+        git_committer_email: "github-actions[bot]@users.noreply.github.com"
+
+    - name: Publish to PyPI
+      if: steps.release.outputs.released == 'true'
+      uses: pypa/gh-action-pypi-publish@release/v1
